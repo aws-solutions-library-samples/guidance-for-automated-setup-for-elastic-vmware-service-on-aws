@@ -1,0 +1,1149 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: This template creates the necessary DNS entries in Route 53, Route Server components, underlying infrastructure, and a  single Amazon EVS environment.
+Metadata:
+  Source: TBD
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: VCF and vSAN Keys
+        Parameters:
+          - MySiteId
+          - MySolutionKey
+          - MyVsanKey
+      - Label:
+          default: Network Objects
+        Parameters:
+          - CreateTGWFlag
+      - Label:
+          default: Networking and DNS
+        Parameters:
+          - MyFQDN
+          - MyCIDR
+          - MyESXI01
+          - MyESXI02
+          - MyESXI03
+          - MyESXI04
+          - MyVC
+          - MyNSX
+          - MySDDCM
+          - MyCB
+          - MyEdge01
+          - MyEdge02
+          - MyNSX01
+          - MyNSX02
+          - MyNSX03
+Parameters:
+  MyFQDN:
+    Type: String
+    Default: my.fqdn.evs
+    Description: This is the FQDN for the Route 53 forward hosted zone
+  MyCIDR:
+    Type: String
+    Default: 10.0.
+    Description: This is the base CIDR for the underlay VPC
+  MyAZ:
+    Type: String
+    Default: use2-az1
+    Description: Select which AZ to deploy in using AZ ID
+  MySiteId:
+    Type: String
+    Default: 00000000
+    Description: The Site ID for the Broadcom VCF licenses
+  MySolutionKey:
+    Type: String
+    Default: 00000-00000-00000-00000-00000
+    Description: Broadcom VCF license key
+  MyVsanKey:
+    Type: String
+    Default: 00000-00000-00000-00000-00000
+    Description: Broadcom vSAN license key
+  MyESXI01:
+    Type: String
+    Default: esxi01
+    Description: DNS name for esxi01
+  MyESXI02:
+    Type: String
+    Default: esxi02
+    Description: DNS name for esxi02
+  MyESXI03:
+    Type: String
+    Default: esxi03
+    Description: DNS name for esxi03
+  MyESXI04:
+    Type: String
+    Default: esxi04
+    Description: DNS name for esxi04
+  MyVC:
+    Type: String
+    Default: vc
+    Description: DNS name for vCenter
+  MyNSX:
+    Type: String
+    Default: nsx
+    Description: DNS name for NSX Manager cluster
+  MySDDCM:
+    Type: String
+    Default: sddcm
+    Description: DNS name for SDDC Manager
+  MyCB:
+    Type: String
+    Default: cb
+    Description: DNS name for Cloud Builder
+  MyEdge01:
+    Type: String
+    Default: edge01
+    Description: DNS name for edge01
+  MyEdge02:
+    Type: String
+    Default: edge02
+    Description: DNS name for edge02
+  MyNSX01:
+    Type: String
+    Default: nsx01
+    Description: DNS name for NSX Manager 01 appliance
+  MyNSX02:
+    Type: String
+    Default: nsx02
+    Description: DNS name for NSX Manager 02 appliance
+  MyNSX03:
+    Type: String
+    Default: nsx03
+    Description: DNS name for NSX Manager 03 appliance
+  CreateTGWFlag:
+    Type: String
+    Default: Skip
+    AllowedValues:
+      - Skip
+      - Create
+    Description: Flag that will also trigger the creation of a TGW and VPC attachment to the Underlay VPC
+Conditions:
+  CreateTGW:
+    !Equals [!Ref CreateTGWFlag, "Create"]
+Resources:
+  ForwardDNSZone:
+    Type: AWS::Route53::HostedZone
+    Properties:
+      HostedZoneConfig:
+        Comment: Forward lookup zone for EVS
+      Name: !Ref MyFQDN
+      VPCs:
+        - VPCId: !Ref UnderlayVPC
+          VPCRegion: us-east-2
+  ESXI01Forward:
+    Type: AWS::Route53::RecordSet
+    DependsOn:
+      - ForwardDNSZone
+    Properties:
+      HostedZoneId: !Ref ForwardDNSZone
+      Name: !Join
+        - .
+        - - !Ref MyESXI01
+          - !Ref MyFQDN
+      ResourceRecords:
+        - !Join
+          - ''
+          - - !Ref MyCIDR
+            - '10.11'
+      TTL: '300'
+      Type: A
+  ESXI02Forward:
+    Type: AWS::Route53::RecordSet
+    DependsOn:
+      - ForwardDNSZone
+    Properties:
+      HostedZoneId: !Ref ForwardDNSZone
+      Name: !Join
+        - .
+        - - !Ref MyESXI02
+          - !Ref MyFQDN
+      ResourceRecords:
+        - !Join
+          - ''
+          - - !Ref MyCIDR
+            - '10.12'
+      TTL: '300'
+      Type: A
+  ESXI03Forward:
+    Type: AWS::Route53::RecordSet
+    DependsOn:
+      - ForwardDNSZone
+    Properties:
+      HostedZoneId: !Ref ForwardDNSZone
+      Name: !Join
+        - .
+        - - !Ref MyESXI03
+          - !Ref MyFQDN
+      ResourceRecords:
+        - !Join
+          - ''
+          - - !Ref MyCIDR
+            - '10.13'
+      TTL: '300'
+      Type: A
+  ESXI04Forward:
+    Type: AWS::Route53::RecordSet
+    DependsOn:
+      - ForwardDNSZone
+    Properties:
+      HostedZoneId: !Ref ForwardDNSZone
+      Name: !Join
+        - .
+        - - !Ref MyESXI04
+          - !Ref MyFQDN
+      ResourceRecords:
+        - !Join
+          - ''
+          - - !Ref MyCIDR
+            - '10.14'
+      TTL: '300'
+      Type: A
+  vCenterForward:
+    Type: AWS::Route53::RecordSet
+    DependsOn:
+      - ForwardDNSZone
+    Properties:
+      HostedZoneId: !Ref ForwardDNSZone
+      Name: !Join
+        - .
+        - - !Ref MyVC
+          - !Ref MyFQDN
+      ResourceRecords:
+        - !Join
+          - ''
+          - - !Ref MyCIDR
+            - '60.10'
+      TTL: '300'
+      Type: A
+  NSXMgrForward:
+    Type: AWS::Route53::RecordSet
+    DependsOn:
+      - ForwardDNSZone
+    Properties:
+      HostedZoneId: !Ref ForwardDNSZone
+      Name: !Join
+        - .
+        - - !Ref MyNSX
+          - !Ref MyFQDN
+      ResourceRecords:
+        - !Join
+          - ''
+          - - !Ref MyCIDR
+            - '60.11'
+      TTL: '300'
+      Type: A
+  SDDCMForward:
+    Type: AWS::Route53::RecordSet
+    DependsOn:
+      - ForwardDNSZone
+    Properties:
+      HostedZoneId: !Ref ForwardDNSZone
+      Name: !Join
+        - .
+        - - !Ref MySDDCM
+          - !Ref MyFQDN
+      ResourceRecords:
+        - !Join
+          - ''
+          - - !Ref MyCIDR
+            - '60.12'
+      TTL: '300'
+      Type: A
+  CBForward:
+    Type: AWS::Route53::RecordSet
+    DependsOn:
+      - ForwardDNSZone
+    Properties:
+      HostedZoneId: !Ref ForwardDNSZone
+      Name: !Join
+        - .
+        - - !Ref MyCB
+          - !Ref MyFQDN
+      ResourceRecords:
+        - !Join
+          - ''
+          - - !Ref MyCIDR
+            - '60.13'
+      TTL: '300'
+      Type: A
+  Edge01Forward:
+    Type: AWS::Route53::RecordSet
+    DependsOn:
+      - ForwardDNSZone
+    Properties:
+      HostedZoneId: !Ref ForwardDNSZone
+      Name: !Join
+        - .
+        - - !Ref MyEdge01
+          - !Ref MyFQDN
+      ResourceRecords:
+        - !Join
+          - ''
+          - - !Ref MyCIDR
+            - '60.14'
+      TTL: '300'
+      Type: A
+  Edge02Forward:
+    Type: AWS::Route53::RecordSet
+    DependsOn:
+      - ForwardDNSZone
+    Properties:
+      HostedZoneId: !Ref ForwardDNSZone
+      Name: !Join
+        - .
+        - - !Ref MyEdge02
+          - !Ref MyFQDN
+      ResourceRecords:
+        - !Join
+          - ''
+          - - !Ref MyCIDR
+            - '60.15'
+      TTL: '300'
+      Type: A
+  NSX01Forward:
+    Type: AWS::Route53::RecordSet
+    DependsOn:
+      - ForwardDNSZone
+    Properties:
+      HostedZoneId: !Ref ForwardDNSZone
+      Name: !Join
+        - .
+        - - !Ref MyNSX01
+          - !Ref MyFQDN
+      ResourceRecords:
+        - !Join
+          - ''
+          - - !Ref MyCIDR
+            - '60.16'
+      TTL: '300'
+      Type: A
+  NSX02Forward:
+    Type: AWS::Route53::RecordSet
+    DependsOn:
+      - ForwardDNSZone
+    Properties:
+      HostedZoneId: !Ref ForwardDNSZone
+      Name: !Join
+        - .
+        - - !Ref MyNSX02
+          - !Ref MyFQDN
+      ResourceRecords:
+        - !Join
+          - ''
+          - - !Ref MyCIDR
+            - '60.17'
+      TTL: '300'
+      Type: A
+  NSX03Forward:
+    Type: AWS::Route53::RecordSet
+    DependsOn:
+      - ForwardDNSZone
+    Properties:
+      HostedZoneId: !Ref ForwardDNSZone
+      Name: !Join
+        - .
+        - - !Ref MyNSX03
+          - !Ref MyFQDN
+      ResourceRecords:
+        - !Join
+          - ''
+          - - !Ref MyCIDR
+            - '60.18'
+      TTL: '300'
+      Type: A
+  ReverseDNSZone:
+    Type: AWS::Route53::HostedZone
+    Properties:
+      HostedZoneConfig:
+        Comment: Reverse lookup zone for EVS
+      Name: !Join
+        - .
+        - - !Select
+            - '1'
+            - !Split
+              - .
+              - !Ref MyCIDR
+          - !Select
+            - '0'
+            - !Split
+              - .
+              - !Ref MyCIDR
+          - in-addr.arpa
+      VPCs:
+        - VPCId: !Ref UnderlayVPC
+          VPCRegion: us-east-2
+  ESXI01Reverse:
+    Type: AWS::Route53::RecordSet
+    DependsOn:
+      - ReverseDNSZone
+    Properties:
+      HostedZoneId: !Ref ReverseDNSZone
+      Name: !Join
+        - .
+        - - '11.10'
+          - !Select
+            - '1'
+            - !Split
+              - .
+              - !Ref MyCIDR
+          - !Select
+            - '0'
+            - !Split
+              - .
+              - !Ref MyCIDR
+          - in-addr.arpa
+      ResourceRecords:
+        - !Join
+          - .
+          - - !Ref MyESXI01
+            - !Ref MyFQDN
+      TTL: '300'
+      Type: PTR
+  ESXI02Reverse:
+    Type: AWS::Route53::RecordSet
+    DependsOn:
+      - ReverseDNSZone
+    Properties:
+      HostedZoneId: !Ref ReverseDNSZone
+      Name: !Join
+        - .
+        - - '12.10'
+          - !Select
+            - '1'
+            - !Split
+              - .
+              - !Ref MyCIDR
+          - !Select
+            - '0'
+            - !Split
+              - .
+              - !Ref MyCIDR
+          - in-addr.arpa
+      ResourceRecords:
+        - !Join
+          - .
+          - - !Ref MyESXI02
+            - !Ref MyFQDN
+      TTL: '300'
+      Type: PTR
+  ESXI03Reverse:
+    Type: AWS::Route53::RecordSet
+    DependsOn:
+      - ReverseDNSZone
+    Properties:
+      HostedZoneId: !Ref ReverseDNSZone
+      Name: !Join
+        - .
+        - - '13.10'
+          - !Select
+            - '1'
+            - !Split
+              - .
+              - !Ref MyCIDR
+          - !Select
+            - '0'
+            - !Split
+              - .
+              - !Ref MyCIDR
+          - in-addr.arpa
+      ResourceRecords:
+        - !Join
+          - .
+          - - !Ref MyESXI03
+            - !Ref MyFQDN
+      TTL: '300'
+      Type: PTR
+  ESXI04Reverse:
+    Type: AWS::Route53::RecordSet
+    DependsOn:
+      - ReverseDNSZone
+    Properties:
+      HostedZoneId: !Ref ReverseDNSZone
+      Name: !Join
+        - .
+        - - '14.10'
+          - !Select
+            - '1'
+            - !Split
+              - .
+              - !Ref MyCIDR
+          - !Select
+            - '0'
+            - !Split
+              - .
+              - !Ref MyCIDR
+          - in-addr.arpa
+      ResourceRecords:
+        - !Join
+          - .
+          - - !Ref MyESXI04
+            - !Ref MyFQDN
+      TTL: '300'
+      Type: PTR
+  vCenterReverse:
+    Type: AWS::Route53::RecordSet
+    DependsOn:
+      - ReverseDNSZone
+    Properties:
+      HostedZoneId: !Ref ReverseDNSZone
+      Name: !Join
+        - .
+        - - '10.60'
+          - !Select
+            - '1'
+            - !Split
+              - .
+              - !Ref MyCIDR
+          - !Select
+            - '0'
+            - !Split
+              - .
+              - !Ref MyCIDR
+          - in-addr.arpa
+      ResourceRecords:
+        - !Join
+          - .
+          - - !Ref MyVC
+            - !Ref MyFQDN
+      TTL: '300'
+      Type: PTR
+  NSXMgrReverse:
+    Type: AWS::Route53::RecordSet
+    DependsOn:
+      - ReverseDNSZone
+    Properties:
+      HostedZoneId: !Ref ReverseDNSZone
+      Name: !Join
+        - .
+        - - '11.60'
+          - !Select
+            - '1'
+            - !Split
+              - .
+              - !Ref MyCIDR
+          - !Select
+            - '0'
+            - !Split
+              - .
+              - !Ref MyCIDR
+          - in-addr.arpa
+      ResourceRecords:
+        - !Join
+          - .
+          - - !Ref MyNSX
+            - !Ref MyFQDN
+      TTL: '300'
+      Type: PTR
+  SDDCMReverse:
+    Type: AWS::Route53::RecordSet
+    DependsOn:
+      - ReverseDNSZone
+    Properties:
+      HostedZoneId: !Ref ReverseDNSZone
+      Name: !Join
+        - .
+        - - '12.60'
+          - !Select
+            - '1'
+            - !Split
+              - .
+              - !Ref MyCIDR
+          - !Select
+            - '0'
+            - !Split
+              - .
+              - !Ref MyCIDR
+          - in-addr.arpa
+      ResourceRecords:
+        - !Join
+          - .
+          - - !Ref MySDDCM
+            - !Ref MyFQDN
+      TTL: '300'
+      Type: PTR
+  CBReverse:
+    Type: AWS::Route53::RecordSet
+    DependsOn:
+      - ReverseDNSZone
+    Properties:
+      HostedZoneId: !Ref ReverseDNSZone
+      Name: !Join
+        - .
+        - - '13.60'
+          - !Select
+            - '1'
+            - !Split
+              - .
+              - !Ref MyCIDR
+          - !Select
+            - '0'
+            - !Split
+              - .
+              - !Ref MyCIDR
+          - in-addr.arpa
+      ResourceRecords:
+        - !Join
+          - .
+          - - !Ref MyCB
+            - !Ref MyFQDN
+      TTL: '300'
+      Type: PTR
+  Edge01Reverse:
+    Type: AWS::Route53::RecordSet
+    DependsOn:
+      - ReverseDNSZone
+    Properties:
+      HostedZoneId: !Ref ReverseDNSZone
+      Name: !Join
+        - .
+        - - '14.60'
+          - !Select
+            - '1'
+            - !Split
+              - .
+              - !Ref MyCIDR
+          - !Select
+            - '0'
+            - !Split
+              - .
+              - !Ref MyCIDR
+          - in-addr.arpa
+      ResourceRecords:
+        - !Join
+          - .
+          - - !Ref MyEdge01
+            - !Ref MyFQDN
+      TTL: '300'
+      Type: PTR
+  Edge02Reverse:
+    Type: AWS::Route53::RecordSet
+    DependsOn:
+      - ReverseDNSZone
+    Properties:
+      HostedZoneId: !Ref ReverseDNSZone
+      Name: !Join
+        - .
+        - - '15.60'
+          - !Select
+            - '1'
+            - !Split
+              - .
+              - !Ref MyCIDR
+          - !Select
+            - '0'
+            - !Split
+              - .
+              - !Ref MyCIDR
+          - in-addr.arpa
+      ResourceRecords:
+        - !Join
+          - .
+          - - !Ref MyEdge02
+            - !Ref MyFQDN
+      TTL: '300'
+      Type: PTR
+  NSX01Reverse:
+    Type: AWS::Route53::RecordSet
+    DependsOn:
+      - ReverseDNSZone
+    Properties:
+      HostedZoneId: !Ref ReverseDNSZone
+      Name: !Join
+        - .
+        - - '16.60'
+          - !Select
+            - '1'
+            - !Split
+              - .
+              - !Ref MyCIDR
+          - !Select
+            - '0'
+            - !Split
+              - .
+              - !Ref MyCIDR
+          - in-addr.arpa
+      ResourceRecords:
+        - !Join
+          - .
+          - - !Ref MyNSX01
+            - !Ref MyFQDN
+      TTL: '300'
+      Type: PTR
+  NSX02Reverse:
+    Type: AWS::Route53::RecordSet
+    DependsOn:
+      - ReverseDNSZone
+    Properties:
+      HostedZoneId: !Ref ReverseDNSZone
+      Name: !Join
+        - .
+        - - '17.60'
+          - !Select
+            - '1'
+            - !Split
+              - .
+              - !Ref MyCIDR
+          - !Select
+            - '0'
+            - !Split
+              - .
+              - !Ref MyCIDR
+          - in-addr.arpa
+      ResourceRecords:
+        - !Join
+          - .
+          - - !Ref MyNSX02
+            - !Ref MyFQDN
+      TTL: '300'
+      Type: PTR
+  NSX03Reverse:
+    Type: AWS::Route53::RecordSet
+    DependsOn:
+      - ReverseDNSZone
+    Properties:
+      HostedZoneId: !Ref ReverseDNSZone
+      Name: !Join
+        - .
+        - - '18.60'
+          - !Select
+            - '1'
+            - !Split
+              - .
+              - !Ref MyCIDR
+          - !Select
+            - '0'
+            - !Split
+              - .
+              - !Ref MyCIDR
+          - in-addr.arpa
+      ResourceRecords:
+        - !Join
+          - .
+          - - !Ref MyNSX03
+            - !Ref MyFQDN
+      TTL: '300'
+      Type: PTR
+  UnderlayVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Join
+        - ''
+        - - !Ref MyCIDR
+          - 0.0/16
+      EnableDnsHostnames: 'true'
+      EnableDnsSupport: 'true'
+      InstanceTenancy: default
+      Tags:
+        - Key: Name
+          Value: EVS-VPC
+  DHCPOptionsSet:
+    Type: AWS::EC2::DHCPOptions
+    Properties:
+      DomainName: !Ref MyFQDN
+      DomainNameServers:
+        - !Join
+          - ''
+          - - !Ref MyCIDR
+            - '0.100'
+        - !Join
+          - ''
+          - - !Ref MyCIDR
+            - '0.101'
+      NtpServers:
+        - 169.254.169.123
+      Tags:
+        - Key: Name
+          Value: EVS-DHCP-OpsSet
+  AssociateDHCPOpsSetVPC:
+    Type: AWS::EC2::VPCDHCPOptionsAssociation
+    DependsOn:
+      - UnderlayVPC
+    Properties:
+      DhcpOptionsId: !Ref DHCPOptionsSet
+      VpcId: !Ref UnderlayVPC
+  ServiceAccessSubnet:
+    Type: AWS::EC2::Subnet
+    DependsOn:
+      - UnderlayVPC
+    Properties:
+      VpcId: !Ref UnderlayVPC
+      AvailabilityZoneId: !Ref MyAZ
+      CidrBlock: !Join
+        - ''
+        - - !Ref MyCIDR
+          - 0.0/24
+      EnableDns64: 'false'
+      Tags:
+        - Key: Name
+          Value: EVS-Service-Access-Subnet
+  R53InboundResolver:
+    Type: AWS::Route53Resolver::ResolverEndpoint
+    DependsOn:
+      - UnderlayVPC
+      - ServiceAccessSubnet
+    Properties:
+      Direction: Inbound
+      IpAddresses:
+        - SubnetId: !Ref ServiceAccessSubnet
+          Ip: !Join
+            - ''
+            - - !Ref MyCIDR
+              - '0.100'
+        - SubnetId: !Ref ServiceAccessSubnet
+          Ip: !Join
+            - ''
+            - - !Ref MyCIDR
+              - '0.101'
+      Name: R53InboundRslvr
+      ResolverEndpointType: IPV4
+      SecurityGroupIds:
+        - !GetAtt UnderlayVPC.DefaultSecurityGroup
+  ServiceAccessSubnetRTB:
+    Type: AWS::EC2::RouteTable
+    DependsOn:
+      - UnderlayVPC
+    Properties:
+      Tags:
+        - Key: Name
+          Value: Service-Access-RTB
+      VpcId: !Ref UnderlayVPC
+  ServiceAccRTBAssoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DependsOn:
+      - ServiceAccessSubnetRTB
+      - ServiceAccessSubnet
+    Properties:
+      RouteTableId: !Ref ServiceAccessSubnetRTB
+      SubnetId: !Ref ServiceAccessSubnet
+  PublicVPCSubnet:
+    Type: AWS::EC2::Subnet
+    DependsOn:
+      - UnderlayVPC
+    Properties:
+      VpcId: !Ref UnderlayVPC
+      AvailabilityZoneId: !Ref MyAZ
+      CidrBlock: !Join
+        - ''
+        - - !Ref MyCIDR
+          - 5.0/24
+      EnableDns64: 'false'
+      MapPublicIpOnLaunch: 'true'
+      Tags:
+        - Key: Name
+          Value: Public-Access-Subnet
+  PublicSubnetRTB:
+    Type: AWS::EC2::RouteTable
+    DependsOn:
+      - UnderlayVPC
+    Properties:
+      Tags:
+        - Key: Name
+          Value: Public-Subnet-RTB
+      VpcId: !Ref UnderlayVPC
+  PublicSubnetRTBAssoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DependsOn:
+      - PublicSubnetRTB
+      - PublicVPCSubnet
+    Properties:
+      RouteTableId: !Ref PublicSubnetRTB
+      SubnetId: !Ref PublicVPCSubnet
+  PublicRouteIGW:
+    Type: AWS::EC2::Route
+    DependsOn:
+      - VPCInternetGateway
+      - PublicSubnetRTB
+    Properties:
+      RouteTableId: !Ref PublicSubnetRTB
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref VPCInternetGateway
+  NatGWEIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+  VPCNatGateway:
+    Type: AWS::EC2::NatGateway
+    DependsOn:
+      - NatGWEIP
+      - PublicVPCSubnet
+    Properties:
+      AllocationId: !GetAtt NatGWEIP.AllocationId
+      ConnectivityType: public
+      SubnetId: !Ref PublicVPCSubnet
+      Tags:
+        - Key: Name
+          Value: VPC-NatGW
+  PrivateRouteNATGateway:
+    Type: AWS::EC2::Route
+    DependsOn:
+      - VPCNatGateway
+      - ServiceAccessSubnetRTB
+    Properties:
+      RouteTableId: !Ref ServiceAccessSubnetRTB
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref VPCNatGateway
+  VPCInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: VPC-IGW
+  AttachInternetGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    DependsOn:
+      - VPCInternetGateway
+      - UnderlayVPC
+    Properties:
+      VpcId: !Ref UnderlayVPC
+      InternetGatewayId: !Ref VPCInternetGateway
+  EVSTGW:
+    Type: AWS::EC2::TransitGateway
+    Condition: CreateTGW
+    Properties:
+      Description: TGW for EVS
+      AutoAcceptSharedAttachments: disable
+      DefaultRouteTableAssociation: enable
+      Tags:
+        - Key: Name
+          Value: EVS-TGW
+  EVSTGWVPCAttachment:
+    Type: AWS::EC2::TransitGatewayVpcAttachment
+    Condition: CreateTGW
+    DependsOn:
+      - EVSTGW
+      - ServiceAccessSubnet
+      - UnderlayVPC
+    Properties:
+      SubnetIds:
+        - !Ref ServiceAccessSubnet
+      Options:
+        ApplianceModeSupport: disable
+        DnsSupport: disable
+        Ipv6Support: disable
+        SecurityGroupReferencingSupport: disable
+      Tags:
+        - Key: Name
+          Value: EVS-TGW-VPC-Attachment
+      TransitGatewayId: !Ref EVSTGW
+      VpcId: !Ref UnderlayVPC
+  EVSRouteServer:
+    Type: AWS::EC2::RouteServer
+    Properties:
+      AmazonSideAsn: 65022
+      PersistRoutes: enable
+      PersistRoutesDuration: 5
+      Tags:
+        - Key: Name
+          Value: EVS-Route-Server
+  EVSRouteServerAssociation:
+    Type: AWS::EC2::RouteServerAssociation
+    DependsOn:
+      - EVSRouteServer
+      - UnderlayVPC
+    Properties:
+      RouteServerId: !Ref EVSRouteServer
+      VpcId: !Ref UnderlayVPC
+  EVSRouteServerEndpoint01:
+    Type: AWS::EC2::RouteServerEndpoint
+    DependsOn:
+      - EVSRouteServerAssociation
+      - ServiceAccessSubnet
+    Properties:
+      RouteServerId: !Ref EVSRouteServer
+      SubnetId: !Ref ServiceAccessSubnet
+      Tags:
+        - Key: Name
+          Value: EVS-RouteServer-Endpoint01
+  EVSRouteServerEndpoint02:
+    Type: AWS::EC2::RouteServerEndpoint
+    DependsOn:
+      - EVSRouteServerAssociation
+      - ServiceAccessSubnet
+    Properties:
+      RouteServerId: !Ref EVSRouteServer
+      SubnetId: !Ref ServiceAccessSubnet
+      Tags:
+        - Key: Name
+          Value: EVS-RouteServer-Endpoint02
+  EVSRouteServerPeer01:
+    Type: AWS::EC2::RouteServerPeer
+    DependsOn:
+      - EVSRouteServerEndpoint01
+    Properties:
+      BgpOptions:
+        PeerAsn: 65000
+        PeerLivenessDetection: bgp-keepalive
+      PeerAddress: !Join
+        - ''
+        - - !Ref MyCIDR
+          - '80.10'
+      RouteServerEndpointId: !Ref EVSRouteServerEndpoint01
+      Tags:
+        - Key: Name
+          Value: EVS-RouteServer-Peer01
+  EVSRouteServerPeer02:
+    Type: AWS::EC2::RouteServerPeer
+    DependsOn:
+      - EVSRouteServerEndpoint02
+    Properties:
+      BgpOptions:
+        PeerAsn: 65000
+        PeerLivenessDetection: bgp-keepalive
+      PeerAddress: !Join
+        - ''
+        - - !Ref MyCIDR
+          - '80.11'
+      RouteServerEndpointId: !Ref EVSRouteServerEndpoint02
+      Tags:
+        - Key: Name
+          Value: EVS-RouteServer-Peer02
+  EVSRouteServerPropagationServiceAccessRTB:
+    Type: AWS::EC2::RouteServerPropagation
+    DependsOn:
+      - EVSRouteServer
+      - ServiceAccessSubnetRTB
+    Properties:
+      RouteServerId: !Ref EVSRouteServer
+      RouteTableId: !Ref ServiceAccessSubnetRTB
+  EVSRouteServerPropagationPublicRTB:
+    Type: AWS::EC2::RouteServerPropagation
+    DependsOn:
+      - EVSRouteServer
+      - PublicSubnetRTB
+    Properties:
+      RouteServerId: !Ref EVSRouteServer
+      RouteTableId: !Ref PublicSubnetRTB
+  EVSKeyPair:
+    Type: AWS::EC2::KeyPair
+    Properties:
+      KeyFormat: pem
+      KeyName: EVS-WS-KeyPair
+      KeyType: rsa
+  EVSEnvironment:
+    Type: AWS::EVS::Environment
+    DependsOn:
+      - EVSKeyPair
+      - EVSRouteServerPeer01
+      - EVSRouteServerPeer02
+      - EVSRouteServerPropagationServiceAccessRTB
+      - EVSRouteServerPropagationPublicRTB
+      - ServiceAccessSubnet
+      - R53InboundResolver
+      - ForwardDNSZone
+      - ReverseDNSZone
+      - ESXI01Forward
+      - ESXI02Forward
+      - ESXI03Forward
+      - ESXI04Forward
+      - vCenterForward
+      - CBForward
+      - SDDCMForward
+      - NSXMgrForward
+      - NSX01Forward
+      - NSX02Forward
+      - NSX03Forward
+      - Edge01Forward
+      - Edge02Forward
+      - ESXI01Reverse
+      - ESXI02Reverse
+      - ESXI03Reverse
+      - ESXI04Reverse
+      - vCenterReverse
+      - CBReverse
+      - SDDCMReverse
+      - NSXMgrReverse
+      - NSX01Reverse
+      - NSX02Reverse
+      - NSX03Reverse
+      - Edge01Reverse
+      - Edge02Reverse
+    Properties:
+      ConnectivityInfo:
+        PrivateRouteServerPeerings:
+          - !Ref EVSRouteServerPeer01
+          - !Ref EVSRouteServerPeer02
+      EnvironmentName: EVS-Deployment
+      Hosts:
+        - HostName: !Ref MyESXI01
+          KeyName: !Ref EVSKeyPair
+          InstanceType: i4i.metal
+        - HostName: !Ref MyESXI02
+          KeyName: !Ref EVSKeyPair
+          InstanceType: i4i.metal
+        - HostName: !Ref MyESXI03
+          KeyName: !Ref EVSKeyPair
+          InstanceType: i4i.metal
+        - HostName: !Ref MyESXI04
+          KeyName: !Ref EVSKeyPair
+          InstanceType: i4i.metal
+      InitialVlans:
+        VmkManagement:
+          Cidr: !Join
+            - ''
+            - - !Ref MyCIDR
+              - 10.0/24
+        VMotion:
+          Cidr: !Join
+            - ''
+            - - !Ref MyCIDR
+              - 20.0/24
+        VSan:
+          Cidr: !Join
+            - ''
+            - - !Ref MyCIDR
+              - 30.0/24
+        VTep:
+          Cidr: !Join
+            - ''
+            - - !Ref MyCIDR
+              - 40.0/24
+        EdgeVTep:
+          Cidr: !Join
+            - ''
+            - - !Ref MyCIDR
+              - 50.0/24
+        VmManagement:
+          Cidr: !Join
+            - ''
+            - - !Ref MyCIDR
+              - 60.0/24
+        Hcx:
+          Cidr: !Join
+            - ''
+            - - !Ref MyCIDR
+              - 70.0/24
+        NsxUpLink:
+          Cidr: !Join
+            - ''
+            - - !Ref MyCIDR
+              - 80.0/24
+        ExpansionVlan1:
+          Cidr: !Join
+            - ''
+            - - !Ref MyCIDR
+              - 90.0/24
+        ExpansionVlan2:
+          Cidr: !Join
+            - ''
+            - - !Ref MyCIDR
+              - 100.0/24
+      LicenseInfo:
+        SolutionKey: !Ref MySolutionKey
+        VsanKey: !Ref MyVsanKey
+      ServiceAccessSubnetId: !Ref ServiceAccessSubnet
+      SiteId: !Ref MySiteId
+      TermsAccepted: true
+      VcfHostnames:
+        CloudBuilder: !Ref MyCB
+        Nsx: !Ref MyNSX
+        NsxEdge1: !Ref MyEdge01
+        NsxEdge2: !Ref MyEdge02
+        NsxManager1: !Ref MyNSX01
+        NsxManager2: !Ref MyNSX02
+        NsxManager3: !Ref MyNSX03
+        SddcManager: !Ref MySDDCM
+        VCenter: !Ref MyVC
+      VcfVersion: VCF-5.2.1
+      VpcId: !Ref UnderlayVPC
+      ServiceAccessSecurityGroups:
+        SecurityGroups:
+          - !GetAtt UnderlayVPC.DefaultSecurityGroup
