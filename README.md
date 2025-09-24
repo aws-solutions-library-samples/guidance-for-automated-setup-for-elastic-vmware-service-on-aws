@@ -1,4 +1,4 @@
-# Guidance Title (required)
+# Guidance for Automated Setup for Elastic VMware Service (EVS) on AWS
 
 The Guidance title should be consistent with the title established first in Alchemy.
 
@@ -7,22 +7,22 @@ The Guidance title should be consistent with the title established first in Alch
 This title correlates exactly to the Guidance it’s linked to, including its corresponding sample code repository. 
 
 
-## Table of Contents (required)
+## Table of Contents 
 
 List the top-level sections of the README template, along with a hyperlink to the specific section.
 
 ### Required
 
-1. [Overview](#overview-required)
+1. [Overview](#overview)
     - [Cost](#cost)
-2. [Prerequisites](#prerequisites-required)
-    - [Operating System](#operating-system-required)
-3. [Deployment Steps](#deployment-steps-required)
-4. [Deployment Validation](#deployment-validation-required)
-5. [Running the Guidance](#running-the-guidance-required)
-6. [Next Steps](#next-steps-required)
-7. [Cleanup](#cleanup-required)
-8. [Notices](#notices-optional)
+2. [Prerequisites](#prerequisites)
+    - [Operating System](#operating-system)
+3. [Deployment Steps](#deployment-steps)
+4. [Deployment Validation](#deployment-validation)
+5. [Running the Guidance](#running-the-guidance)
+6. [Next Steps](#next-steps)
+7. [Cleanup](#cleanup)
+8. [Notices](#notices)
 
 ***Optional***
 
@@ -30,7 +30,7 @@ List the top-level sections of the README template, along with a hyperlink to th
 9. [Revisions](#revisions-optional)
 10. [Authors](#authors-optional)
 
-## Overview (required)
+## Overview 
 
 1. Provide a brief overview explaining the what, why, or how of your Guidance. You can answer any one of the following to help you write this:
 
@@ -64,9 +64,9 @@ The following table provides a sample cost breakdown for deploying this Guidance
 | Amazon API Gateway | 1,000,000 REST API calls per month  | $ 3.50month |
 | Amazon Cognito | 1,000 active users per month without advanced security feature | $ 0.00 |
 
-## Prerequisites (required)
+## Prerequisites 
 
-### Operating System (required)
+### Operating System 
 
 - Talk about the base Operating System (OS) and environment that can be used to run or deploy this Guidance, such as *Mac, Linux, or Windows*. Include all installable packages or modules required for the deployment. 
 - By default, assume Amazon Linux 2/Amazon Linux 2023 AMI as the base environment. All packages that are not available by default in AMI must be listed out.  Include the specific version number of the package or module.
@@ -112,7 +112,7 @@ The following table provides a sample cost breakdown for deploying this Guidance
 <If the Guidance is built for specific AWS Regions, or if the services used in the Guidance do not support all Regions, please specify the Region this Guidance is best suited for>
 
 
-## Deployment Steps (required)
+## Deployment Steps 
 
 Deployment steps must be numbered, comprehensive, and usable to customers at any level of AWS expertise. The steps must include the precise commands to run, and describe the action it performs.
 
@@ -134,7 +134,7 @@ Deployment steps must be numbered, comprehensive, and usable to customers at any
 
 
 
-## Deployment Validation  (required)
+## Deployment Validation  
 
 <Provide steps to validate a successful deployment, such as terminal output, verifying that the resource is created, status of the CloudFormation template, etc.>
 
@@ -147,7 +147,7 @@ Deployment steps must be numbered, comprehensive, and usable to customers at any
 
 
 
-## Running the Guidance (required)
+## Running the Guidance 
 
 <Provide instructions to run the Guidance with the sample data or input provided, and interpret the output received.> 
 
@@ -160,20 +160,19 @@ This section should include:
 
 
 
-## Next Steps (required)
+## Next Steps 
 
 Provide suggestions and recommendations about how customers can modify the parameters and the components of the Guidance to further enhance it according to their requirements.
 
 
-## Cleanup (required)
+## Cleanup 
 
 - Include detailed instructions, commands, and console actions to delete the deployed Guidance.
 - If the Guidance requires manual deletion of resources, such as the content of an S3 bucket, please specify.
 
-
+<!--
 
 ## FAQ, known issues, additional considerations, and limitations (optional)
-
 
 **Known issues (optional)**
 
@@ -183,13 +182,13 @@ Provide suggestions and recommendations about how customers can modify the param
 **Additional considerations (if applicable)**
 
 <Include considerations the customer must know while using the Guidance, such as anti-patterns, or billing considerations.>
+-->
 
 **Examples:**
 
 - “This Guidance creates a public AWS bucket required for the use-case.”
 - “This Guidance created an Amazon SageMaker notebook that is billed per hour irrespective of usage.”
 - “This Guidance creates unauthenticated public API endpoints.”
-
 
 Provide a link to the *GitHub issues page* for users to provide feedback.
 
@@ -202,7 +201,7 @@ Document all notable changes to this project.
 
 Consider formatting this section based on Keep a Changelog, and adhering to Semantic Versioning.
 
-## Notices ( required )
+## Notices
 
 Include below mandatory legal disclaimer for Guidance
 
