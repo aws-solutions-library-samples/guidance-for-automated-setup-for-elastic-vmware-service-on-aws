@@ -27,12 +27,13 @@ This Guidance provides an automated solution for deploying Amazon Elastic VMware
 [Insert architecture diagram here showing the components created by the template]
 
 The CloudFormation template creates and configures:
+
 1. VPC networking infrastructure
 2. Route 53 DNS zones and records
 3. VPC Route Server configuration
 4. EVS environment with 4-node cluster
 
-Key Components and Their Relationships:
+**Key Components and Their Relationships**:
 
 1. **VPC Infrastructure**
 
