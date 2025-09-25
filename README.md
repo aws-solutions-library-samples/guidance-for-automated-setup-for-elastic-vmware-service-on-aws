@@ -1,213 +1,266 @@
 # Guidance for Automated Setup for Elastic VMware Service (EVS) on AWS
 
-The Guidance title should be consistent with the title established first in Alchemy.
-
-**Example:** *Guidance for Product Substitutions on AWS*
-
-This title correlates exactly to the Guidance it’s linked to, including its corresponding sample code repository. 
-
-
-## Table of Contents 
-
-List the top-level sections of the README template, along with a hyperlink to the specific section.
-
-### Required
+## Table of Contents
 
 1. [Overview](#overview)
     - [Cost](#cost)
 2. [Prerequisites](#prerequisites)
     - [Operating System](#operating-system)
+    - [AWS Account Requirements](#aws-account-requirements)
+    - [Service Limits](#service-limits)
 3. [Deployment Steps](#deployment-steps)
 4. [Deployment Validation](#deployment-validation)
 5. [Running the Guidance](#running-the-guidance)
 6. [Next Steps](#next-steps)
 7. [Cleanup](#cleanup)
-8. [Notices](#notices)
+8. [Important Notes and Limitations](#important-notes-and-limitations)
+9. [Notices](#notices)
+10. [Authors](#authors)
+
+## Overview
+
+This Guidance provides an automated solution for deploying Amazon Elastic VMware Service (EVS) environments using AWS CloudFormation. It simplifies the complex process of setting up EVS by automating the creation of required networking infrastructure, Route 53 DNS configuration, and EVS environment deployment.
+
+### Architecture
+
+[Insert architecture diagram here showing the components created by the template]
+
+The CloudFormation template creates and configures:
+1. VPC networking infrastructure
+2. Route 53 DNS zones and records
+3. VPC Route Server configuration
+4. EVS environment with 4-node cluster
+
+Key Components and Their Relationships:
+
+1. VPC Infrastructure
+
+ - Underlay VPC with specified CIDR block
+ - Two subnets:
+     Service Access Subnet (MyCIDR.0.0/24)
+     Public Access Subnet (MyCIDR.5.0/24)
+2. Networking Components
+ - Internet Gateway for public internet access
+ - NAT Gateway for private subnet internet access
+ - Route Server (ASN 65022) with two endpoints
+ - Optional Transit Gateway connection
+3. DNS Infrastructure
+ - Route 53 Resolver Endpoints
+ - Forward and Reverse lookup zones
+ - DHCP Options Set with custom DNS settings
+4. EVS Environment
+
+ - 4 ESXi hosts (i4i.metal instances)
+ - vCenter Server
+ - NSX Manager Cluster (3 nodes)
+ - NSX Edge Cluster (2 nodes)
+ - SDDC Manager
+ - Cloud Builder
+
+5. Network Segments (VLANs)
+
+ - VMkernel Management (MyCIDR.10.0/24)
+ - vMotion (MyCIDR.20.0/24)
+ - vSAN (MyCIDR.30.0/24)
+ - VTEP (MyCIDR.40.0/24)
+ - Edge VTEP (MyCIDR.50.0/24)
+ - VM Management (MyCIDR.60.0/24)
+ - HCX (MyCIDR.70.0/24)
+ - NSX Uplink (MyCIDR.80.0/24)
+ - Expansion VLANs (MyCIDR.90.0/24 & MyCIDR.100.0/24)
+   
+### Cost
+
+You are responsible for the cost of the AWS services used while running this Guidance. As of September 2025, the cost for running this Guidance with the default settings in the US East (N. Virginia) Region `us-east-1` is approximately _$8,000 per month_ for a standard 4 ESXi node deployment.
+
+We recommend creating a [Budget](https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html) through [AWS Cost Explorer](https://aws.amazon.com/aws-cost-management/aws-cost-explorer/) to help manage costs. Prices are subject to change. For full details, refer to the pricing webpage for each AWS service used in this Guidance.
+
+### Sample Cost Table
+
+| AWS Service | Dimensions | Cost [USD] |
+|-------------|------------|------------|
+| Amazon EC2 (i4i.metal instances) | 4 instances per month | $7,603.20 |
+| NAT Gateway | 1 NAT Gateway with data transfer | $32.85 |
+| Route 53 | Hosted zones and queries | $1.00 |
+| VPC Route Server | 1 Route Server with endpoints | $91.25 |
+| Data Transfer | 1 TB outbound | $90.00 |
+
+## Prerequisites
+
+### Operating System
+
+These deployment instructions are optimized for Amazon Linux 2. You'll need:
+- AWS CLI v2
+- Python 3.8 or later
+- git CLI client
+
+### AWS Account Requirements
+
+1. AWS Business Support or higher subscription
+2. Valid VMware Cloud Foundation (VCF) and vSAN license keys
+3. VCF Site ID from Broadcom
+4. ACM certificate (if using TLS)
+
+## Important Notes and Limitations
+1. DNS Configuration: This template only supports Route 53 as the DNS provider. For environments requiring custom DNS servers, please refer to the manual setup process in the Amazon EVS User Guide.
+2. Single Availability Zone: This template deploys the EVS environment in a single Availability Zone.
+3. Initial Configuration: The template provides a basic EVS environment. Additional configuration may be required based on your specific use case.
+
+### Important Note About DNS Configuration
+This CloudFormation template is designed to work exclusively with Amazon Route 53 for DNS management. If you need to use your own DNS server:
+- Do not use this automation template
+- Ensure your DNS server is resolvable within your VPC
+- Follow the manual setup instructions in the [Amazon EVS User Guide](https://docs.aws.amazon.com/evs/latest/userguide/getting-started.html)
+
+### Service Limits
+
+The following service quotas must be available:
+- EVS host count per environment: Minimum 4
+- EC2 Running On-Demand i4i.metal instances: 512 vCPUs (4 instances × 128 vCPUs)
+
+### Deployment Steps
+
+1. Clone this project repository:
+```bash
+git clone https://github.com/aws-samples/aws-evs-automated-deployment.git
+```
+
+2. Navigate to the cloned directory:
+```bash
+cd [repository-name]
+```
+
+3. Deploy the CloudFormation template 
+
+### Deploy From the CLI
+```bash
+aws cloudformation create-stack \
+  --stack-name evs-environment \
+  --template-body file://template.yaml \
+  --parameters \
+    ParameterKey=MyFQDN,ParameterValue=my.fqdn.evs \
+    ParameterKey=MyCIDR,ParameterValue=10.0. \
+    ParameterKey=MySiteId,ParameterValue=your-site-id \
+    ParameterKey=MySolutionKey,ParameterValue=your-solution-key \
+    ParameterKey=MyVsanKey,ParameterValue=your-vsan-key
+```
+
+## CLI Deployment Validation
+
+1. Monitor the CloudFormation stack status in the AWS Console or using:
+```bash
+aws cloudformation describe-stacks --stack-name evs-environment
+```
+
+
+
+### Deploy Using AWS CloudFormation Console
+
+1. Sign in to the AWS Management Console and open the CloudFormation console at https://console.aws.amazon.com/cloudformation/
+2. Choose "Create stack" and then select "With new resources (standard)".
+3. In the "Specify template" section, select "Upload a template file".
+4. Click "Choose file" and navigate to the cloned repository directory.
+5. Select the `evs-deployment-template.yaml` file and click "Open".
+6. Click "Next".
+7. On the "Specify stack details" page:
+- Enter a Stack name (e.g., "EVS-Automated-Deployment")
+- Fill in the required parameters:
+  - MyFQDN: The fully qualified domain name for your EVS environment
+  - MyCIDR: The base CIDR for the VPC (e.g., 10.0.)
+  - MySiteId: Your Broadcom VCF Site ID
+  - MySolutionKey: Your VCF solution license key
+  - MyVsanKey: Your vSAN license key
+  - (Fill in any other required parameters as specified in the template)
+8. Click "Next".
+9. On the "Configure stack options" page, you can add tags, set permissions, and configure advanced options if needed. For most deployments, you can leave these settings at their defaults.
+10. Click "Next".
+11. On the "Review" page, review your settings. Be sure to check the acknowledgment at the bottom of the page if your template creates IAM resources.
+12. Click "Create stack".
+
+CloudFormation will now begin creating the resources for your EVS environment. This process can take several hours to complete.
+
+## Monitor Console Deployment Progress
+
+1. On the CloudFormation console, select your stack.
+2. Go to the "Events" tab to monitor the creation progress.
+3. Once the status changes to "CREATE_COMPLETE", your EVS environment is ready.
+
+## View Console Outputs
+
+After the stack creation is complete:
+
+1. Go to the "Outputs" tab of your stack.
+2. Here you will find important information about your deployed resources, including:
+- EVSEnvironmentId: The ID of your new EVS environment
+- VPCId: The ID of the VPC created for your environment
+- ServiceAccessSubnetId: The ID of the subnet used for service access
+- Route53ForwardZoneId and Route53ReverseZoneId: IDs for the DNS zones
+- Other relevant IDs and IP addresses
+
+Make note of these outputs as they will be useful for further configuration and management of your EVS environment.
+
+### Verify Environment
+1. Once complete, verify EVS environment creation in the EVS AWS console or using command:
+```bash
+aws evs get-environment --environment-id [environment-id]
+```
+
+2. Validate Route 53 configuration:
+   a. Check that the hosted zones are created:
+   ```bash
+   aws route53 list-hosted-zones
+   ```
+   b. Verify DNS records for EVS components:
+   ```bash
+   aws route53 list-resource-record-sets --hosted-zone-id [your-hosted-zone-id]
+   ```
+   c. Test DNS resolution for a few key components:
+   ```bash
+   nslookup [component-name].[your-domain] [route53-resolver-ip]
+   ```
+
+## Running the Guidance
+
+After successful deployment, follow these steps to access your EVS environment:
+
+1. Retrieve VCF credentials from AWS Secrets Manager following the [EVS User Guide](https://docs.aws.amazon.com/evs/latest/userguide/getting-started-retrieve-credentials.html)
+
+2. Access your environment components:
+   - vCenter Server
+   - NSX Manager
+   - SDDC Manager
+
+For detailed instructions on using EVS, refer to the [Amazon EVS User Guide](https://docs.aws.amazon.com/evs/latest/userguide/).
+
+## Next Steps
+
+1. Configure additional security settings
+2. Set up VMware HCX for migrations
+3. Add additional hosts as needed
+4. Configure backup and disaster recovery
+
+## Cleanup
+
+1. Delete the EVS environment:
+```bash
+aws evs delete-environment --environment-id [environment-id]
+```
+
+2. Delete the CloudFormation stack:
+```bash
+aws cloudformation delete-stack --stack-name evs-environment
+```
+
+3. Verify all resources are properly cleaned up in the AWS Console
 
-***Optional***
-
-8. [FAQ, known issues, additional considerations, and limitations](#faq-known-issues-additional-considerations-and-limitations-optional)
-9. [Revisions](#revisions-optional)
-10. [Authors](#authors-optional)
-
-## Overview 
-
-1. Provide a brief overview explaining the what, why, or how of your Guidance. You can answer any one of the following to help you write this:
-
-    - **Why did you build this Guidance?**
-    - **What problem does this Guidance solve?**
-
-2. Include the architecture diagram image, as well as the steps explaining the high-level overview and flow of the architecture. 
-    - To add a screenshot, create an ‘assets/images’ folder in your repository and upload your screenshot to it. Then, using the relative file path, add it to your README. 
-
-### Cost ( required )
-
-This section is for a high-level cost estimate. Think of a likely straightforward scenario with reasonable assumptions based on the problem the Guidance is trying to solve. Provide an in-depth cost breakdown table in this section below ( you should use AWS Pricing Calculator to generate cost breakdown ).
-
-Start this section with the following boilerplate text:
-
-_You are responsible for the cost of the AWS services used while running this Guidance. As of <month> <year>, the cost for running this Guidance with the default settings in the <Default AWS Region (Most likely will be US East (N. Virginia)) > is approximately $<n.nn> per month for processing ( <nnnnn> records )._
-
-Replace this amount with the approximate cost for running your Guidance in the default Region. This estimate should be per month and for processing/serving resonable number of requests/entities.
-
-Suggest you keep this boilerplate text:
-_We recommend creating a [Budget](https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html) through [AWS Cost Explorer](https://aws.amazon.com/aws-cost-management/aws-cost-explorer/) to help manage costs. Prices are subject to change. For full details, refer to the pricing webpage for each AWS service used in this Guidance._
-
-### Sample Cost Table ( required )
-
-**Note : Once you have created a sample cost table using AWS Pricing Calculator, copy the cost breakdown to below table and upload a PDF of the cost estimation on BuilderSpace. Do not add the link to the pricing calculator in the ReadMe.**
-
-The following table provides a sample cost breakdown for deploying this Guidance with the default parameters in the US East (N. Virginia) Region for one month.
-
-| AWS service  | Dimensions | Cost [USD] |
-| ----------- | ------------ | ------------ |
-| Amazon API Gateway | 1,000,000 REST API calls per month  | $ 3.50month |
-| Amazon Cognito | 1,000 active users per month without advanced security feature | $ 0.00 |
-
-## Prerequisites 
-
-### Operating System 
-
-- Talk about the base Operating System (OS) and environment that can be used to run or deploy this Guidance, such as *Mac, Linux, or Windows*. Include all installable packages or modules required for the deployment. 
-- By default, assume Amazon Linux 2/Amazon Linux 2023 AMI as the base environment. All packages that are not available by default in AMI must be listed out.  Include the specific version number of the package or module.
-
-**Example:**
-“These deployment instructions are optimized to best work on **<Amazon Linux 2 AMI>**.  Deployment in another OS may require additional steps.”
-
-- Include install commands for packages, if applicable.
-
-
-### Third-party tools (If applicable)
-
-*List any installable third-party tools required for deployment.*
-
-
-### AWS account requirements (If applicable)
-
-*List out pre-requisites required on the AWS account if applicable, this includes enabling AWS regions, requiring ACM certificate.*
-
-**Example:** “This deployment requires you have public ACM certificate available in your AWS account”
-
-**Example resources:**
-- ACM certificate 
-- DNS record
-- S3 bucket
-- VPC
-- IAM role with specific permissions
-- Enabling a Region or service etc.
-
-
-### aws cdk bootstrap (if sample code has aws-cdk)
-
-<If using aws-cdk, include steps for account bootstrap for new cdk users.>
-
-**Example blurb:** “This Guidance uses aws-cdk. If you are using aws-cdk for first time, please perform the below bootstrapping....”
-
-### Service limits  (if applicable)
-
-<Talk about any critical service limits that affect the regular functioning of the Guidance. If the Guidance requires service limit increase, include the service name, limit name and link to the service quotas page.>
-
-### Supported Regions (if applicable)
-
-<If the Guidance is built for specific AWS Regions, or if the services used in the Guidance do not support all Regions, please specify the Region this Guidance is best suited for>
-
-
-## Deployment Steps 
-
-Deployment steps must be numbered, comprehensive, and usable to customers at any level of AWS expertise. The steps must include the precise commands to run, and describe the action it performs.
-
-* All steps must be numbered.
-* If the step requires manual actions from the AWS console, include a screenshot if possible.
-* The steps must start with the following command to clone the repo. ```git clone xxxxxxx```
-* If applicable, provide instructions to create the Python virtual environment, and installing the packages using ```requirement.txt```.
-* If applicable, provide instructions to capture the deployed resource ARN or ID using the CLI command (recommended), or console action.
-
- 
-**Example:**
-
-1. Clone the repo using command ```git clone xxxxxxxxxx```
-2. cd to the repo folder ```cd <repo-name>```
-3. Install packages in requirements using command ```pip install requirement.txt```
-4. Edit content of **file-name** and replace **s3-bucket** with the bucket name in your account.
-5. Run this command to deploy the stack ```cdk deploy``` 
-6. Capture the domain name created by running this CLI command ```aws apigateway ............```
-
-
-
-## Deployment Validation  
-
-<Provide steps to validate a successful deployment, such as terminal output, verifying that the resource is created, status of the CloudFormation template, etc.>
-
-
-**Examples:**
-
-* Open CloudFormation console and verify the status of the template with the name starting with xxxxxx.
-* If deployment is successful, you should see an active database instance with the name starting with <xxxxx> in        the RDS console.
-*  Run the following CLI command to validate the deployment: ```aws cloudformation describe xxxxxxxxxxxxx```
-
-
-
-## Running the Guidance 
-
-<Provide instructions to run the Guidance with the sample data or input provided, and interpret the output received.> 
-
-This section should include:
-
-* Guidance inputs
-* Commands to run
-* Expected output (provide screenshot if possible)
-* Output description
-
-
-
-## Next Steps 
-
-Provide suggestions and recommendations about how customers can modify the parameters and the components of the Guidance to further enhance it according to their requirements.
-
-
-## Cleanup 
-
-- Include detailed instructions, commands, and console actions to delete the deployed Guidance.
-- If the Guidance requires manual deletion of resources, such as the content of an S3 bucket, please specify.
-
-<!--
-
-## FAQ, known issues, additional considerations, and limitations (optional)
-
-**Known issues (optional)**
-
-<If there are common known issues, or errors that can occur during the Guidance deployment, describe the issue and resolution steps here>
-
-
-**Additional considerations (if applicable)**
-
-<Include considerations the customer must know while using the Guidance, such as anti-patterns, or billing considerations.>
--->
-
-**Examples:**
-
-- “This Guidance creates a public AWS bucket required for the use-case.”
-- “This Guidance created an Amazon SageMaker notebook that is billed per hour irrespective of usage.”
-- “This Guidance creates unauthenticated public API endpoints.”
-
-Provide a link to the *GitHub issues page* for users to provide feedback.
-
-
-**Example:** *“For any feedback, questions, or suggestions, please use the issues tab under this repo.”*
-
-## Revisions (optional)
-
-Document all notable changes to this project.
-
-Consider formatting this section based on Keep a Changelog, and adhering to Semantic Versioning.
 
 ## Notices
 
-Include below mandatory legal disclaimer for Guidance
+Customers are responsible for making their own independent assessment of the information in this Guidance. This Guidance: (a) is for informational purposes only, (b) represents AWS current product offerings and practices, which are subject to change without notice, and (c) does not create any commitments or assurances from AWS and its affiliates, suppliers or licensors. AWS products or services are provided "as is" without warranties, representations, or conditions of any kind, whether express or implied. AWS responsibilities and liabilities to its customers are controlled by AWS agreements, and this Guidance is not part of, nor does it modify, any agreement between AWS and its customers.
 
-*Customers are responsible for making their own independent assessment of the information in this Guidance. This Guidance: (a) is for informational purposes only, (b) represents AWS current product offerings and practices, which are subject to change without notice, and (c) does not create any commitments or assurances from AWS and its affiliates, suppliers or licensors. AWS products or services are provided “as is” without warranties, representations, or conditions of any kind, whether express or implied. AWS responsibilities and liabilities to its customers are controlled by AWS agreements, and this Guidance is not part of, nor does it modify, any agreement between AWS and its customers.*
+## Authors
 
-
-## Authors (optional)
-
-Name of code contributors
+- David Piet, Principal SA, Migration & Modernization
+- Daniel Zilberman, Sr. Specialist SA, Technical Solutions
+- Deepika Suresh, Specialist SA, Technical Solutions
+- Johanna Wood, Technical Lead, Technical Solutions
