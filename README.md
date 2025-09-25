@@ -3,19 +3,20 @@
 ## Table of Contents
 
 1. [Overview](#overview)
+    - [Architecture](#architecture)
     - [Cost](#cost)
-2. [Prerequisites](#prerequisites)
+3. [Prerequisites](#prerequisites)
     - [Operating System](#operating-system)
     - [AWS Account Requirements](#aws-account-requirements)
     - [Service Limits](#service-limits)
-3. [Deployment Steps](#deployment-steps)
-4. [Deployment Validation](#deployment-validation)
-5. [Running the Guidance](#running-the-guidance)
-6. [Next Steps](#next-steps)
-7. [Cleanup](#cleanup)
-8. [Important Notes and Limitations](#important-notes-and-limitations)
-9. [Notices](#notices)
-10. [Authors](#authors)
+4. [Deployment Steps](#deployment-steps)
+5. [Deployment Validation](#deployment-validation)
+6. [Running the Guidance](#running-the-guidance)
+7. [Next Steps](#next-steps)
+8. [Cleanup](#cleanup)
+9. [Important Notes and Limitations](#important-notes-and-limitations)
+10. [Notices](#notices)
+11. [Authors](#authors)
 
 ## Overview
 
