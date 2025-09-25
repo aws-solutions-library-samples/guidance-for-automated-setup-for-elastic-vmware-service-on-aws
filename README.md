@@ -34,23 +34,22 @@ The CloudFormation template creates and configures:
 
 Key Components and Their Relationships:
 
-1. VPC Infrastructure
+1. **VPC Infrastructure**
 
  - Underlay VPC with specified CIDR block
  - Two subnets:
      Service Access Subnet (MyCIDR.0.0/24)
      Public Access Subnet (MyCIDR.5.0/24)
-2. Networking Components
+2. **Networking Components**
  - Internet Gateway for public internet access
  - NAT Gateway for private subnet internet access
  - Route Server (ASN 65022) with two endpoints
  - Optional Transit Gateway connection
-3. DNS Infrastructure
+3. **DNS Infrastructure**
  - Route 53 Resolver Endpoints
  - Forward and Reverse lookup zones
  - DHCP Options Set with custom DNS settings
-4. EVS Environment
-
+4. **EVS Environment**
  - 4 ESXi hosts (i4i.metal instances)
  - vCenter Server
  - NSX Manager Cluster (3 nodes)
@@ -58,8 +57,7 @@ Key Components and Their Relationships:
  - SDDC Manager
  - Cloud Builder
 
-5. Network Segments (VLANs)
-
+5. **Network Segments (VLANs)**
  - VMkernel Management (MyCIDR.10.0/24)
  - vMotion (MyCIDR.20.0/24)
  - vSAN (MyCIDR.30.0/24)
@@ -72,7 +70,7 @@ Key Components and Their Relationships:
    
 ### Cost
 
-You are responsible for the cost of the AWS services used while running this Guidance. As of September 2025, the cost for running this Guidance with the default settings in the US East (N. Virginia) Region `us-east-1` is approximately _$8,000 per month_ for a standard 4 ESXi node deployment.
+You are responsible for the cost of the AWS services used while running this Guidance. As of September 2025, the cost for running this Guidance with the default settings in the US East (N. Virginia) Region `us-east-1` is approximately _$8,000 per month_ (TO DO: validate/update) for a standard 4 ESXi node deployment.
 
 We recommend creating a [Budget](https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html) through [AWS Cost Explorer](https://aws.amazon.com/aws-cost-management/aws-cost-explorer/) to help manage costs. Prices are subject to change. For full details, refer to the pricing webpage for each AWS service used in this Guidance.
 
