@@ -128,7 +128,7 @@ Resources:
       Name: !Ref MyFQDN
       VPCs:
         - VPCId: !Ref UnderlayVPC
-          VPCRegion: us-east-2
+          VPCRegion: us-east-1
   ESXI01Forward:
     Type: AWS::Route53::RecordSet
     DependsOn:
@@ -370,7 +370,7 @@ Resources:
           - in-addr.arpa
       VPCs:
         - VPCId: !Ref UnderlayVPC
-          VPCRegion: us-east-2
+          VPCRegion: us-east-1
   ESXI01Reverse:
     Type: AWS::Route53::RecordSet
     DependsOn:
