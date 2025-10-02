@@ -11,6 +11,10 @@ Metadata:
           - MySolutionKey
           - MyVsanKey
       - Label:
+          default: Availability Zone selection from the current working region
+        Parameters:
+          - MyAZ
+      - Label:
           default: Network Objects
         Parameters:
           - CreateTGWFlag
@@ -33,6 +37,9 @@ Metadata:
           - MyNSX02
           - MyNSX03
 Parameters:
+  MyAZ:
+    Type: AWS::EC2::AvailabilityZone::Name
+    Description: Availability Zone to select from the current working region
   MyFQDN:
     Type: String
     Default: my.fqdn.evs
@@ -41,10 +48,6 @@ Parameters:
     Type: String
     Default: 10.0.
     Description: This is the base CIDR for the underlay VPC
-  MyAZ:
-    Type: String
-    Default: use2-az1
-    Description: Select which AZ to deploy in using AZ ID
   MySiteId:
     Type: String
     Default: 00000000
@@ -119,6 +122,11 @@ Parameters:
 Conditions:
   CreateTGW:
     !Equals [!Ref CreateTGWFlag, "Create"]
+Rules:
+  ValidateRegion:
+    Assertions:
+      - Assert: !Contains [ [ 'us-east-1', 'us-east-2', 'us-west-2', 'ap-northeast-1', 'ap-southeast-1', 'eu-central-1', 'eu-west-1', 'eu-west-2'], !Ref AWS::Region ]
+        AssertDescription: This assertion validates that EVS is available in the current working region
 Resources:
   ForwardDNSZone:
     Type: AWS::Route53::HostedZone
@@ -128,7 +136,7 @@ Resources:
       Name: !Ref MyFQDN
       VPCs:
         - VPCId: !Ref UnderlayVPC
-          VPCRegion: us-east-1
+          VPCRegion: !Ref AWS::Region
   ESXI01Forward:
     Type: AWS::Route53::RecordSet
     DependsOn:
@@ -370,7 +378,7 @@ Resources:
           - in-addr.arpa
       VPCs:
         - VPCId: !Ref UnderlayVPC
-          VPCRegion: us-east-1
+          VPCRegion: !Ref AWS::Region
   ESXI01Reverse:
     Type: AWS::Route53::RecordSet
     DependsOn:
@@ -766,7 +774,7 @@ Resources:
       - UnderlayVPC
     Properties:
       VpcId: !Ref UnderlayVPC
-      AvailabilityZoneId: !Ref MyAZ
+      AvailabilityZone: !Ref MyAZ
       CidrBlock: !Join
         - ''
         - - !Ref MyCIDR
@@ -820,7 +828,7 @@ Resources:
       - UnderlayVPC
     Properties:
       VpcId: !Ref UnderlayVPC
-      AvailabilityZoneId: !Ref MyAZ
+      AvailabilityZone: !Ref MyAZ
       CidrBlock: !Join
         - ''
         - - !Ref MyCIDR
