@@ -28,8 +28,8 @@ This Guidance provides an automated solution for deploying Amazon Elastic VMware
 
 The CloudFormation template creates and configures:
 
-1. VPC networking infrastructure
-2. Route 53 DNS zones and records
+1. Route 53 DNS zones and records for forward and reverse lookups
+2. VPC networking infrastructure
 3. VPC Route Server configuration
 4. EVS environment with 4-node cluster
 
@@ -44,7 +44,7 @@ The CloudFormation template creates and configures:
 2. **Networking Components**
  - Internet Gateway for public internet access
  - NAT Gateway for private subnet internet access
- - Route Server (ASN 65022) with two endpoints
+ - Route Server (ASN 65022) with two Route Server endpoints and corresponding peers
  - Optional Transit Gateway connection
 3. **DNS Infrastructure**
  - Route 53 Resolver Endpoints
@@ -67,7 +67,7 @@ The CloudFormation template creates and configures:
  - VM Management (MyCIDR.60.0/24)
  - HCX (MyCIDR.70.0/24)
  - NSX Uplink (MyCIDR.80.0/24)
- - Expansion VLANs (MyCIDR.90.0/24 & MyCIDR.100.0/24)
+ - 2x Expansion VLANs (MyCIDR.90.0/24 & MyCIDR.100.0/24)
    
 ### Cost
 
@@ -77,13 +77,14 @@ We recommend creating a [Budget](https://docs.aws.amazon.com/cost-management/lat
 
 ### Sample Cost Table
 
-| AWS Service | Dimensions | Cost [USD] |
-|-------------|------------|------------|
+| AWS Service                     | Dimensions | Cost [USD] |
+|---------------------------------|------------|------------|
 | Amazon EC2 (i4i.metal instances) | 4 instances per month | $7,603.20 |
-| NAT Gateway | 1 NAT Gateway with data transfer | $32.85 |
-| Route 53 | Hosted zones and queries | $1.00 |
-| VPC Route Server | 1 Route Server with endpoints | $91.25 |
-| Data Transfer | 1 TB outbound | $90.00 |
+| Amazon EVS Control Plane        | Per host per hour | $0.92 |
+| NAT Gateway                     | 1 NAT Gateway with data transfer | $32.85 |
+| Route 53                        | Hosted zones and queries | $1.00 |
+| VPC Route Server                | 1 Route Server with endpoints | $91.25 |
+| Data Transfer                   | 1 TB outbound | $90.00 |
 
 ## Prerequisites
 
@@ -97,9 +98,8 @@ These deployment instructions are optimized for Amazon Linux 2. You'll need:
 ### AWS Account Requirements
 
 1. AWS Business Support or higher subscription
-2. Valid VMware Cloud Foundation (VCF) and vSAN license keys
-3. VCF Site ID from Broadcom
-4. ACM certificate (if using TLS)
+2. Valid VMware Cloud Foundation (VCF) and vSAN license keys with corresponding Site ID
+3. ACM certificate (if using TLS)
 
 ## Important Notes and Limitations
 1. DNS Configuration: This template only supports Route 53 as the DNS provider. For environments requiring custom DNS servers, please refer to the manual setup process in the Amazon EVS User Guide.
@@ -241,17 +241,22 @@ For detailed instructions on using EVS, refer to the [Amazon EVS User Guide](htt
 
 ## Cleanup
 
-1. Delete the EVS environment:
+1. Delete EVS hosts:
+```bash
+aws evs delete-environment-host --environment-id [environment-id] --host [host] 
+```
+
+2. Delete the EVS environment:
 ```bash
 aws evs delete-environment --environment-id [environment-id]
 ```
 
-2. Delete the CloudFormation stack:
+3. Delete the CloudFormation stack:
 ```bash
 aws cloudformation delete-stack --stack-name evs-environment
 ```
 
-3. Verify all resources are properly cleaned up in the AWS Console
+4. Verify all resources are properly cleaned up in the AWS Console
 
 
 ## Notices
@@ -260,7 +265,7 @@ Customers are responsible for making their own independent assessment of the inf
 
 ## Authors
 
-- David Piet, Principal SA, Migration & Modernization
+- David Piet, Principal Specialist SA, Migration & Modernization
 - Daniel Zilberman, Sr. Specialist SA, Technical Solutions
 - Deepika Suresh, Specialist SA, Technical Solutions
 - Johanna Wood, Technical Lead, Technical Solutions
