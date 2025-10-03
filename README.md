@@ -153,26 +153,25 @@ aws cloudformation describe-stacks --stack-name evs-environment
 ```
 
 
-
 ### Deploy Using AWS CloudFormation Console
 
 1. Sign in to the AWS Management Console and open the CloudFormation console at https://console.aws.amazon.com/cloudformation/
 2. Choose "Create stack" and then select "With new resources (standard)".
 3. In the "Specify template" section, select "Upload a template file".
 4. Click "Choose file" and navigate to the cloned repository directory.
-5. Select the `evs-deployment-template.yaml` file and click "Open".
+5. Select the `evs_create_world.yaml` file and click "Open".
 6. Click "Next".
 7. On the "Specify stack details" page:
 - Enter a Stack name (e.g., "EVS-Automated-Deployment")
 - Fill in the required parameters:
   - MyFQDN: The fully qualified domain name for your EVS environment
-  - MyCIDR: The base CIDR for the VPC (e.g., 10.0.)
-  - MySiteId: Your Broadcom VCF Site ID
-  - MySolutionKey: Your VCF solution license key
-  - MyVsanKey: Your vSAN license key
+  - MyCIDR: The base CIDR for the VPC (e.g., `10.0.`)
+  - MySiteId: Your Broadcom VCF Site ID - **must be valid**
+  - MySolutionKey: Your VCF solution license key - **must be valid**
+  - MyVsanKey: Your vSAN license key- **must be valid**
   - (Fill in any other required parameters as specified in the template)
 8. Click "Next".
-9. On the "Configure stack options" page, you can add tags, set permissions, and configure advanced options if needed. For most deployments, you can leave these settings at their defaults.
+9. On the "Configure Stack options" page, you can add tags, set permissions, and configure advanced options if needed. For most deployments, you can leave these settings at their defaults.
 10. Click "Next".
 11. On the "Review" page, review your settings. Be sure to check the acknowledgment at the bottom of the page if your template creates IAM resources.
 12. Click "Create stack".
@@ -183,7 +182,7 @@ CloudFormation will now begin creating the resources for your EVS environment. T
 
 1. On the CloudFormation console, select your stack.
 2. Go to the "Events" tab to monitor the creation progress.
-3. Once the status changes to "CREATE_COMPLETE", your EVS environment is ready.
+3. Once the status changes to "CREATE_COMPLETE", your EVS environment is ready. In case of any failure, examine the root cause of failure, make correction and try again. 
 
 ## View Console Outputs
 
