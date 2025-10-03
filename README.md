@@ -77,14 +77,16 @@ We recommend creating a [Budget](https://docs.aws.amazon.com/cost-management/lat
 
 ### Sample Cost Table
 
-| AWS Service                     | Dimensions | Cost [USD] |
-|---------------------------------|------------|------------|
-| Amazon EC2 (i4i.metal instances) | 4 instances per month | $7,603.20 |
-| Amazon EVS Control Plane        | Per host per hour | $0.92 |
-| NAT Gateway                     | 1 NAT Gateway with data transfer | $32.85 |
-| Route 53                        | Hosted zones and queries | $1.00 |
-| VPC Route Server                | 1 Route Server with endpoints | $91.25 |
-| Data Transfer                   | 1 TB outbound | $90.00 |
+| AWS Service                     | Dimensions                               | Cost [USD] |
+|---------------------------------|------------------------------------------|------------|
+| Amazon EC2 (i4i.metal instances) | 4 instances per month                    | $7,603.20  |
+| Amazon EVS Control Plane        | Per host per hour                        | $0.92      |
+| NAT Gateway                     | 1 NAT Gateway with data transfer         | $32.85     |
+| Route 53                        | Hosted zones and queries                 | $1.00      |
+| VPC Route Server                | 1 Route Server with 2 endpoints per hour | $0.40      |
+| Data Transfer                   | 1 TB outbound                            | $90.00     |
+
+You can find additional pricing information on the [Amazon EVS Pricing Page](https://aws.amazon.com/evs/pricing/).
 
 ## Prerequisites
 
@@ -237,6 +239,13 @@ For detailed instructions on using EVS, refer to the [Amazon EVS User Guide](htt
 2. Set up VMware HCX for migrations
 3. Add additional hosts as needed
 4. Configure backup and disaster recovery
+
+## Troubleshooting
+
+1. Prior to the launch of this CloudFormation template, verify that you have correctly entered your VCF-related license information
+2. In the event of a deployment failure we recommend the following:
+   1. If the failure occurred during the deployment of the EVS Environment, please open a support case
+   2. If the failure occurred prior to the deployment of the EVS Environment, take note of the errors, delete the Stack and try again
 
 ## Cleanup
 
