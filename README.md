@@ -9,6 +9,7 @@
     - [Operating System](#operating-system)
     - [AWS Account Requirements](#aws-account-requirements)
     - [Service Limits](#service-limits)
+    - [Security](#security)
 4. [Deployment Steps](#deployment-steps)
 5. [Deployment Validation](#deployment-validation)
 6. [Running the Guidance](#running-the-guidance)
@@ -25,6 +26,7 @@ This Guidance provides an automated solution for deploying Amazon Elastic VMware
 ### Architecture
 
 [Insert architecture diagram here showing the components created by the template]
+_Figure 1: Automated Setup for Elastic VMware Service (EVS) - Reference Architecture_
 
 The CloudFormation template creates and configures:
 
@@ -39,19 +41,19 @@ The CloudFormation template creates and configures:
 
  - Underlay VPC with specified CIDR block
  - Two subnets:
-     Service Access Subnet (MyCIDR.0.0/24)
-     Public Access Subnet (MyCIDR.5.0/24)
+     Service Access Subnet (`MyCIDR.0.0/24`)
+     Public Access Subnet (`MyCIDR.5.0/24`)
 2. **Networking Components**
  - Internet Gateway for public internet access
  - NAT Gateway for private subnet internet access
- - Route Server (ASN 65022) with two Route Server endpoints and corresponding peers
+ - Route Server (`ASN 65022`) with two Route Server endpoints and corresponding peers
  - Optional Transit Gateway connection
 3. **DNS Infrastructure**
  - Route 53 Resolver Endpoints
  - Forward and Reverse lookup zones
  - DHCP Options Set with custom DNS settings
 4. **EVS Environment**
- - 4 ESXi hosts (i4i.metal instances)
+ - 4 ESXi hosts (`i4i.metal` instances)
  - vCenter Server
  - NSX Manager Cluster (3 nodes)
  - NSX Edge Cluster (2 nodes)
@@ -59,15 +61,15 @@ The CloudFormation template creates and configures:
  - Cloud Builder
 
 5. **Network Segments (VLANs)**
- - VMkernel Management (MyCIDR.10.0/24)
- - vMotion (MyCIDR.20.0/24)
- - vSAN (MyCIDR.30.0/24)
- - VTEP (MyCIDR.40.0/24)
- - Edge VTEP (MyCIDR.50.0/24)
- - VM Management (MyCIDR.60.0/24)
- - HCX (MyCIDR.70.0/24)
- - NSX Uplink (MyCIDR.80.0/24)
- - 2x Expansion VLANs (MyCIDR.90.0/24 & MyCIDR.100.0/24)
+ - VMkernel Management (`MyCIDR.10.0/24`)
+ - vMotion (`MyCIDR.20.0/24`)
+ - vSAN (`MyCIDR.30.0/24`)
+ - VTEP (`MyCIDR.40.0/24`)
+ - Edge VTEP (`MyCIDR.50.0/24`)
+ - VM Management (`MyCIDR.60.0/24`)
+ - HCX (`MyCIDR.70.0/24`)
+ - NSX Uplink (`MyCIDR.80.0/24`)
+ - 2x Expansion VLANs (`MyCIDR.90.0/24` & `MyCIDR.100.0/24`)
    
 ### Cost
 
@@ -121,7 +123,16 @@ The following service quotas must be available:
 - EVS host count per environment: Minimum 4
 - EC2 Running On-Demand i4i.metal instances: 512 vCPUs (4 instances × 128 vCPUs)
 
-### Deployment Steps
+### Security
+
+When you build systems on AWS infrastructure, security responsibilities are shared between you and AWS. This shared responsibility model in the context of Amazon Elastic VMware Service means that Amazon is responsible for the security of the physical infrastructure and the initial deployment of the VMware Cloud Foundations (VCF) software. Customers are responsible for the security of their VCF configurations and their respective virtual machines. Customers are also responsible for the life-cycling of the VCF stack. 
+
+Organizations will need to ensure the security of their underlay VPC, subnets, Transit Gateway (if deployed), and all VMware NSX firewall rules meet their respective security standards. It is important to note that AWS Security Groups do not function on elastic network interfaces that are attached to Amazon EVS VLAN subnets. To control traffic to and from Amazon EVS VLAN subnets, you must use a network access control list. For more information, [review the EVS documentation here](https://docs.aws.amazon.com/evs/latest/userguide/getting-started.html#getting-started-create-nacl-vlan-traffic).
+
+
+## Deployment Steps
+
+### Deployment Using CLI
 
 1. Clone this project repository:
 ```bash
@@ -135,7 +146,6 @@ cd [repository-name]
 
 3. Deploy the CloudFormation template 
 
-### Deploy From the CLI
 ```bash
 aws cloudformation create-stack \
   --stack-name evs-environment \
@@ -148,17 +158,16 @@ aws cloudformation create-stack \
     ParameterKey=MyVsanKey,ParameterValue=your-vsan-key
 ```
 
-## CLI Deployment Validation
+### Deployment Validation
 
-1. Monitor the CloudFormation stack status in the AWS Console or using:
+1. Monitor the CloudFormation stack status in the AWS Console or using command:
 ```bash
 aws cloudformation describe-stacks --stack-name evs-environment
 ```
 
-
 ### Deploy Using AWS CloudFormation Console
 
-1. Sign in to the AWS Management Console and open the CloudFormation console at https://console.aws.amazon.com/cloudformation/
+1. Sign in to the AWS Management Console and open the CloudFormation console at `https://console.aws.amazon.com/cloudformation/`
 2. Choose "Create stack" and then select "With new resources (standard)".
 3. In the "Specify template" section, select "Upload a template file".
 4. Click "Choose file" and navigate to the cloned repository directory.
@@ -179,7 +188,7 @@ aws cloudformation describe-stacks --stack-name evs-environment
 11. On the "Review" page, review your settings. Be sure to check the acknowledgment at the bottom of the page if your template creates IAM resources.
 12. Click "Create stack".
 
-CloudFormation will now begin creating the resources for your EVS environment. This process can take several hours to complete.
+>NOTE: CloudFormation will now begin creating the resources for your EVS environment. This process can take several hours to complete.
 
 ## Monitor Console Deployment Progress
 
@@ -200,8 +209,11 @@ After the stack creation is complete:
 - Other relevant IDs and IP addresses
 - Here is an example of the complete set of resources that get deployed:
   <img src="assets/resources1.png">
+  _Figure 2: Automated Setup for Elastic VMware Service (EVS) - Cloud Formation Resources (part 1)_
   <img src="assets/resources2.png">
+  _Figure 3: Automated Setup for Elastic VMware Service (EVS) - Cloud Formation Resources (part 2)_
   <img src="assets/resources3.png">
+  _Figure 4: Automated Setup for Elastic VMware Service (EVS) - Cloud Formation Resources (part 3)_
 3. You can review the input parameters at any time in the parameters tab:
    <img src="assets/parameters.png">
 
@@ -262,12 +274,6 @@ For detailed instructions on using EVS, refer to the [Amazon EVS User Guide](htt
    2. If the failure occurred prior to the deployment of the EVS Environment, take note of the errors, delete the Stack and try again <img src="assets/deletestack.png" alt="CloudFormation Stack Delete">
 
 For additional information on troubleshooting your Amazon EVS Environment, [please refer to the documentation](https://docs.aws.amazon.com/evs/latest/userguide/troubleshooting.html).
-
-## Security
-
-When you build systems on AWS infrastructure, security responsibilities are shared between you and AWS. This shared responsibility model in the context of Amazon Elastic VMware Service means that Amazon is responsible for the security of the physical infrastructure and the initial deployment of the VMware Cloud Foundations (VCF) software. Customers are responsible for the security of their VCF configurations and their respective virtual machines. Customers are also responsible for the life-cycling of the VCF stack. 
-
-Organizations will need to ensure the security of their underlay VPC, subnets, Transit Gateway (if deployed), and all VMware NSX firewall rules meet their respective security standards. It is important to note that AWS Security Groups do not function on elastic network interfaces that are attached to Amazon EVS VLAN subnets. To control traffic to and from Amazon EVS VLAN subnets, you must use a network access control list. For more information, [review the EVS documentation here](https://docs.aws.amazon.com/evs/latest/userguide/getting-started.html#getting-started-create-nacl-vlan-traffic).
 
 ## Cleanup
 Note that the EVS environment must be manually removed before the CloudFormation stack is deleted.
