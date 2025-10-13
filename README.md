@@ -100,8 +100,9 @@ These deployment instructions are optimized for Amazon Linux 2. You'll need:
 ### AWS Account Requirements
 
 1. AWS Business Support or higher subscription
-2. Valid VMware Cloud Foundation (VCF) and vSAN license keys with corresponding Site ID
-3. ACM certificate (if using TLS)
+2. Amazon EVS service level quotas are adequately set, [see additional info here](https://docs.aws.amazon.com/evs/latest/userguide/service-quotas-evs.html)
+3. Valid VMware Cloud Foundation (VCF) and vSAN license keys with corresponding Site ID
+4. ACM certificate (if using TLS)
 
 ## Important Notes and Limitations
 1. DNS Configuration: This template only supports Route 53 as the DNS provider. For environments requiring custom DNS servers, please refer to the manual setup process in the Amazon EVS User Guide.
@@ -190,13 +191,19 @@ CloudFormation will now begin creating the resources for your EVS environment. T
 
 After the stack creation is complete:
 
-1. Go to the "Outputs" tab of your stack.
+1. Go to the "Resources" tab of your stack.
 2. Here you will find important information about your deployed resources, including:
 - EVSEnvironmentId: The ID of your new EVS environment
 - VPCId: The ID of the VPC created for your environment
 - ServiceAccessSubnetId: The ID of the subnet used for service access
 - Route53ForwardZoneId and Route53ReverseZoneId: IDs for the DNS zones
 - Other relevant IDs and IP addresses
+- Here is an example of the complete set of resources that get deployed:
+  <img src="assets/resources1.png">
+  <img src="assets/resources2.png">
+  <img src="assets/resources3.png">
+3. You can review the input parameters at any time in the parameters tab:
+   <img src="assets/parameters.png">
 
 Make note of these outputs as they will be useful for further configuration and management of your EVS environment.
 
@@ -205,8 +212,11 @@ Make note of these outputs as they will be useful for further configuration and 
 ```bash
 aws evs get-environment --environment-id [environment-id]
 ```
+Here are example views of the host and network tab respectively:
+<img src="assets/hosts.png">
+<img src="assets/networks.png">
 
-2. Validate Route 53 configuration:
+2. Validate Route 53 configuration via the AWS console or using the following commands:
    a. Check that the hosted zones are created:
    ```bash
    aws route53 list-hosted-zones
@@ -215,6 +225,9 @@ aws evs get-environment --environment-id [environment-id]
    ```bash
    aws route53 list-resource-record-sets --hosted-zone-id [your-hosted-zone-id]
    ```
+   Here is an example of the forward and reverse record sets:
+   <img src="assets/dns_forward.png">
+   <img src="assets/dns_reverse.png">
    c. Test DNS resolution for a few key components:
    ```bash
    nslookup [component-name].[your-domain] [route53-resolver-ip]
@@ -235,20 +248,29 @@ For detailed instructions on using EVS, refer to the [Amazon EVS User Guide](htt
 
 ## Next Steps
 
-1. Configure additional security settings
-2. Set up VMware HCX for migrations
-3. Add additional hosts as needed
-4. Configure backup and disaster recovery
+1. [Configure additional security settings](https://docs.aws.amazon.com/evs/latest/userguide/security.html)
+2. [Set up VMware HCX for migrations](https://docs.aws.amazon.com/evs/latest/userguide/migrate-evs-hcx.html)
+3. [Add additional hosts as needed](https://docs.aws.amazon.com/evs/latest/userguide/evs-env-create-host.html)
+4. [Configure backup and disaster recovery](https://docs.aws.amazon.com/evs/latest/userguide/disaster-recovery-resiliency.html)
+5. [Review the basics of managing an EVS Environment](https://docs.aws.amazon.com/evs/latest/userguide/env-mgmt.html)
 
 ## Troubleshooting
 
 1. Prior to the launch of this CloudFormation template, verify that you have correctly entered your VCF-related license information
 2. In the event of a deployment failure we recommend the following:
    1. If the failure occurred during the deployment of the EVS Environment, please open a support case
-   2. If the failure occurred prior to the deployment of the EVS Environment, take note of the errors, delete the Stack and try again
+   2. If the failure occurred prior to the deployment of the EVS Environment, take note of the errors, delete the Stack and try again <img src="assets/deletestack.png" alt="CloudFormation Stack Delete">
+
+For additional information on troubleshooting your Amazon EVS Environment, [please refer to the documentation](https://docs.aws.amazon.com/evs/latest/userguide/troubleshooting.html).
+
+## Security
+
+When you build systems on AWS infrastructure, security responsibilities are shared between you and AWS. This shared responsibility model in the context of Amazon Elastic VMware Service means that Amazon is responsible for the security of the physical infrastructure and the initial deployment of the VMware Cloud Foundations (VCF) software. Customers are responsible for the security of their VCF configurations and their respective virtual machines. Customers are also responsible for the life-cycling of the VCF stack. 
+
+Organizations will need to ensure the security of their underlay VPC, subnets, Transit Gateway (if deployed), and all VMware NSX firewall rules meet their respective security standards. It is important to note that AWS Security Groups do not function on elastic network interfaces that are attached to Amazon EVS VLAN subnets. To control traffic to and from Amazon EVS VLAN subnets, you must use a network access control list. For more information, [review the EVS documentation here](https://docs.aws.amazon.com/evs/latest/userguide/getting-started.html#getting-started-create-nacl-vlan-traffic).
 
 ## Cleanup
-
+Note that the EVS environment must be manually removed before the CloudFormation stack is deleted.
 1. Delete EVS hosts:
 ```bash
 aws evs delete-environment-host --environment-id [environment-id] --host [host] 
