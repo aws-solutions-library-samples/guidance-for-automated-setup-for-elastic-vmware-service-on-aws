@@ -4,6 +4,7 @@
 
 1. [Overview](#overview)
     - [Architecture](#architecture)
+    - [AWS Services in this Guidance](#aws-services-in-this-guidance)
     - [Cost](#cost)
 3. [Prerequisites](#prerequisites)
     - [Operating System](#operating-system)
@@ -14,10 +15,11 @@
 5. [Deployment Validation](#deployment-validation)
 6. [Running the Guidance](#running-the-guidance)
 7. [Next Steps](#next-steps)
-8. [Cleanup](#cleanup)
-9. [Important Notes and Limitations](#important-notes-and-limitations)
-10. [Notices](#notices)
-11. [Authors](#authors)
+8. [Troubleshooting](#troubleshooting)
+9. [Cleanup](#cleanup)
+10. [Important Notes and Limitations](#important-notes-and-limitations)
+11. [Notices](#notices)
+12. [Authors](#authors)
 
 ## Overview
 
@@ -25,36 +27,38 @@ This Guidance provides an automated solution for deploying Amazon Elastic VMware
 
 ### Architecture
 
-[Insert architecture diagram here showing the components created by the template]
-_Figure 1: Automated Setup for Elastic VMware Service (EVS) - Reference Architecture_
+<img src="assets/automation_evs_reference_architecture.jpg" width="70%">
+<i>Figure 1:  Automated Setup for Elastic VMware Service (EVS) - Reference Architecture </i>
 
-The CloudFormation template creates and configures:
+The CloudFormation [template](https://github.com/aws-solutions-library-samples/guidance-for-automated-setup-for-elastic-vmware-service-on-aws/blob/main/deployment/evs_create_world.yaml) creates and configures the following:
 
 1. Route 53 DNS zones and records for forward and reverse lookups
 2. VPC networking infrastructure
 3. VPC Route Server configuration
-4. EVS environment with 4-node cluster
+4. EVS environment with 4-node ESXi cluster
 
 **Key Components and Their Relationships**:
 
 1. **VPC Infrastructure**
-
  - Underlay VPC with specified CIDR block
  - Two subnets:
      Service Access Subnet (`MyCIDR.0.0/24`)
      Public Access Subnet (`MyCIDR.5.0/24`)
+
 2. **Networking Components**
  - Internet Gateway for public internet access
- - NAT Gateway for private subnet internet access
+ - NAT Gateway for private subnet Internet access
  - Route Server (`ASN 65022`) with two Route Server endpoints and corresponding peers
  - Optional Transit Gateway connection
+
 3. **DNS Infrastructure**
  - Route 53 Resolver Endpoints
  - Forward and Reverse lookup zones
  - DHCP Options Set with custom DNS settings
+
 4. **EVS Environment**
  - 4 ESXi hosts (`i4i.metal` instances)
- - vCenter Server
+ - VMware vCenter Server
  - NSX Manager Cluster (3 nodes)
  - NSX Edge Cluster (2 nodes)
  - SDDC Manager
@@ -71,9 +75,22 @@ The CloudFormation template creates and configures:
  - NSX Uplink (`MyCIDR.80.0/24`)
  - 2x Expansion VLANs (`MyCIDR.90.0/24` & `MyCIDR.100.0/24`)
    
+### AWS Services in this Guidance
+
+| **AWS Service** | **Role** | **Description** |
+|-----------------|----------|-----------------|
+| [Amazon Elastic VMware Service](https://aws.amazon.com/evs/)/) (EVS) | Core service | Provides environment for running component of VMware environment on AWS |
+| [Amazon Elastic Compute Cloud](https://aws.amazon.com/ec2/) (EC2) | Core service | Provides the compute instances for ESXi hosts. |
+| [Amazon Virtual Private Cloud](https://aws.amazon.com/vpc/) (VPC) | Core Service | Creates an isolated network environment with public and private subnets across multiple Availability Zones. |
+| [Amazon Elastic Block Store](https://aws.amazon.com/ebs) (EBS) | Core service | Provides persistent block storage volumes for EC2 instances |
+| [Amazon Rote 53](https://aws.amazon.com/route53/)| Core Service| Provides Forward and Reverse DNS lookup record for components of EVS service |
+| [AWS Identity and Access Management](https://aws.amazon.com/iam/) (IAM) | Supporting service | Manages access to AWS services and resources securely |
+| [Amazon CloudWatch](https://aws.amazon.com/cloudwatch/) | Supporting service | Collects and tracks metrics, logs, and events from AWS resources provisoned in the guidance |
+| [AWS CloudFormation](https://aws.amazon.com/cloudformation/) | Supporting service| Speed up cloud provisioning with infrastructure as code. 
+
 ### Cost
 
-You are responsible for the cost of the AWS services used while running this Guidance. As of September 2025, the cost for running this Guidance with the default settings in the US East (N. Virginia) Region `us-east-1` is approximately _$8,000 per month_ (TO DO: validate/update) for a standard 4 ESXi node deployment.
+You are responsible for the cost of the AWS services used while running this Guidance. As of September 2025, the cost for running this Guidance with the default settings in the US East (N. Virginia) Region `us-east-1` is approximately _$7730 per month_ for a standard 4 ESXi node deployment.
 
 We recommend creating a [Budget](https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html) through [AWS Cost Explorer](https://aws.amazon.com/aws-cost-management/aws-cost-explorer/) to help manage costs. Prices are subject to change. For full details, refer to the pricing webpage for each AWS service used in this Guidance.
 
@@ -81,12 +98,13 @@ We recommend creating a [Budget](https://docs.aws.amazon.com/cost-management/lat
 
 | AWS Service                     | Dimensions                               | Cost [USD] |
 |---------------------------------|------------------------------------------|------------|
-| Amazon EC2 (i4i.metal instances) | 4 instances per month                    | $7,603.20  |
+| Amazon EC2 (ESXi hosts)         | 4 i4i.metal instances per month          | $7,603.20  |
 | Amazon EVS Control Plane        | Per host per hour                        | $0.92      |
 | NAT Gateway                     | 1 NAT Gateway with data transfer         | $32.85     |
 | Route 53                        | Hosted zones and queries                 | $1.00      |
 | VPC Route Server                | 1 Route Server with 2 endpoints per hour | $0.40      |
 | Data Transfer                   | 1 TB outbound                            | $90.00     |
+|**Total:**                       |                                          | **$7728.37**|
 
 You can find additional pricing information on the [Amazon EVS Pricing Page](https://aws.amazon.com/evs/pricing/).
 
@@ -95,9 +113,9 @@ You can find additional pricing information on the [Amazon EVS Pricing Page](htt
 ### Operating System
 
 These deployment instructions are optimized for Amazon Linux 2. You'll need:
-- AWS CLI v2
-- Python 3.8 or later
-- git CLI client
+- [AWS CLI v2](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+- [Python 3.8](https://www.python.org/downloads/release/python-380/) or later
+- [git CLI client](https://git-scm.com/downloads)
 
 ### AWS Account Requirements
 
@@ -134,14 +152,14 @@ Organizations will need to ensure the security of their underlay VPC, subnets, T
 
 ### Deployment Using CLI
 
-1. Clone this project repository:
+1. Clone this guidance code repository:
 ```bash
-git clone https://github.com/aws-samples/aws-evs-automated-deployment.git
+git clone https://github.com/aws-solutions-library-samples/guidance-for-automated-setup-for-elastic-vmware-service-on-aws.git
 ```
 
-2. Navigate to the cloned directory:
+2. Navigate to the cloned source code directory containing CloudFormation template:
 ```bash
-cd [repository-name]
+cd guidance-for-automated-setup-for-elastic-vmware-service-on-aws/deployment
 ```
 
 3. Deploy the CloudFormation template 
@@ -149,7 +167,7 @@ cd [repository-name]
 ```bash
 aws cloudformation create-stack \
   --stack-name evs-environment \
-  --template-body file://template.yaml \
+  --template-body file://evs_create_world.yaml \
   --parameters \
     ParameterKey=MyFQDN,ParameterValue=my.fqdn.evs \
     ParameterKey=MyCIDR,ParameterValue=10.0. \
@@ -170,17 +188,17 @@ aws cloudformation describe-stacks --stack-name evs-environment
 1. Sign in to the AWS Management Console and open the CloudFormation console at `https://console.aws.amazon.com/cloudformation/`
 2. Choose "Create stack" and then select "With new resources (standard)".
 3. In the "Specify template" section, select "Upload a template file".
-4. Click "Choose file" and navigate to the cloned repository directory.
+4. Click "Choose file" and navigate to the cloned repository directory, `deployment` subdirectory.
 5. Select the `evs_create_world.yaml` file and click "Open".
 6. Click "Next".
 7. On the "Specify stack details" page:
 - Enter a Stack name (e.g., "EVS-Automated-Deployment")
 - Fill in the required parameters:
-  - MyFQDN: The fully qualified domain name for your EVS environment
-  - MyCIDR: The base CIDR for the VPC (e.g., `10.0.`)
-  - MySiteId: Your Broadcom VCF Site ID - **must be valid**
-  - MySolutionKey: Your VCF solution license key - **must be valid**
-  - MyVsanKey: Your vSAN license key- **must be valid**
+  - `MyFQDN`: The fully qualified domain name for your EVS environment
+  - `MyCIDR`: The base CIDR for the VPC (e.g., `10.0.`)
+  - `MySiteId`: Your Broadcom VCF Site ID - **must be valid**
+  - `MySolutionKey`: Your VCF solution license key - **must be valid**
+  - `MyVsanKey`: Your vSAN license key- **must be valid**
   - (Fill in any other required parameters as specified in the template)
 8. Click "Next".
 9. On the "Configure Stack options" page, you can add tags, set permissions, and configure advanced options if needed. For most deployments, you can leave these settings at their defaults.
@@ -188,7 +206,7 @@ aws cloudformation describe-stacks --stack-name evs-environment
 11. On the "Review" page, review your settings. Be sure to check the acknowledgment at the bottom of the page if your template creates IAM resources.
 12. Click "Create stack".
 
->NOTE: CloudFormation will now begin creating the resources for your EVS environment. This process can take several hours to complete.
+>NOTE: CloudFormation stack will now begin creating the AWS resources for your EVS environment. This process can take several hours to complete.
 
 ## Monitor Console Deployment Progress
 
@@ -202,32 +220,35 @@ After the stack creation is complete:
 
 1. Go to the "Resources" tab of your stack.
 2. Here you will find important information about your deployed resources, including:
-- EVSEnvironmentId: The ID of your new EVS environment
-- VPCId: The ID of the VPC created for your environment
-- ServiceAccessSubnetId: The ID of the subnet used for service access
-- Route53ForwardZoneId and Route53ReverseZoneId: IDs for the DNS zones
+- `EVSEnvironmentId`: The ID of your new EVS environment
+- `VPCId`: The ID of the VPC created for your environment
+- `ServiceAccessSubnetId`: The ID of the subnet used for service access
+- `Route53ForwardZoneId` and `Route53ReverseZoneId`: IDs for the DNS zones
 - Other relevant IDs and IP addresses
 - Here is an example of the complete set of resources that get deployed:
   <img src="assets/resources1.png">
-  _Figure 2: Automated Setup for Elastic VMware Service (EVS) - Cloud Formation Resources (part 1)_
   <img src="assets/resources2.png">
-  _Figure 3: Automated Setup for Elastic VMware Service (EVS) - Cloud Formation Resources (part 2)_
   <img src="assets/resources3.png">
-  _Figure 4: Automated Setup for Elastic VMware Service (EVS) - Cloud Formation Resources (part 3)_
+  <i>Figure 2:  Automated Setup for Elastic VMware Service (EVS) - Resources created by CloudFormation Stack </i>
+  
 3. You can review the input parameters at any time in the parameters tab:
-   <img src="assets/parameters.png">
+  <img src="assets/parameters.png">
+  <i>Figure 3:  Automated Setup for Elastic VMware Service (EVS) - Input Parameters used by CloudFormation Stack </i>
 
 Make note of these outputs as they will be useful for further configuration and management of your EVS environment.
 
 ### Verify Environment
-1. Once complete, verify EVS environment creation in the EVS AWS console or using command:
+1. Once deployment is completed, verify EVS environment creation in the AWS EVS console or using command:
 ```bash
 aws evs get-environment --environment-id [environment-id]
 ```
 Here are example views of the host and network tab respectively:
 <img src="assets/hosts.png">
-<img src="assets/networks.png">
+<i>Figure 4:  Automated Setup for Elastic VMware Service (EVS) - ESXi Hosts</i>
 
+<img src="assets/networks.png">
+<i>Figure 5:  Automated Setup for Elastic VMware Service (EVS) - Networking</i>
+ 
 2. Validate Route 53 configuration via the AWS console or using the following commands:
    a. Check that the hosted zones are created:
    ```bash
@@ -239,7 +260,11 @@ Here are example views of the host and network tab respectively:
    ```
    Here is an example of the forward and reverse record sets:
    <img src="assets/dns_forward.png">
+   <i>Figure 6:  Automated Setup for Elastic VMware Service (EVS) - Forward Lookup DNS records</i>
+   
    <img src="assets/dns_reverse.png">
+   <i>Figure 7:  Automated Setup for Elastic VMware Service (EVS) - Reverse Lookup DNS records</i>
+   
    c. Test DNS resolution for a few key components:
    ```bash
    nslookup [component-name].[your-domain] [route53-resolver-ip]
@@ -247,11 +272,11 @@ Here are example views of the host and network tab respectively:
 
 ## Running the Guidance
 
-After successful deployment, follow these steps to access your EVS environment:
+After successful guidance deployment, follow these steps to access your EVS environment:
 
 1. Retrieve VCF credentials from AWS Secrets Manager following the [EVS User Guide](https://docs.aws.amazon.com/evs/latest/userguide/getting-started-retrieve-credentials.html)
 
-2. Access your environment components:
+2. Access your EVS environment components:
    - vCenter Server
    - NSX Manager
    - SDDC Manager
@@ -268,16 +293,19 @@ For detailed instructions on using EVS, refer to the [Amazon EVS User Guide](htt
 
 ## Troubleshooting
 
-1. Prior to the launch of this CloudFormation template, verify that you have correctly entered your VCF-related license information
+1. Prior to the launch of this CloudFormation [template](https://github.com/aws-solutions-library-samples/guidance-for-automated-setup-for-elastic-vmware-service-on-aws/blob/main/deployment/evs_create_world.yaml), verify that you have correctly entered your VCF-related license information
 2. In the event of a deployment failure we recommend the following:
    1. If the failure occurred during the deployment of the EVS Environment, please open a support case
-   2. If the failure occurred prior to the deployment of the EVS Environment, take note of the errors, delete the Stack and try again <img src="assets/deletestack.png" alt="CloudFormation Stack Delete">
-
+   2. If the failure occurred prior to the deployment of the EVS Environment, take note of the errors, delete the Stack and try again 
+   <img src="assets/deletestack.png" alt="CloudFormation Stack Delete">
+  <i>Figure 8:  Automated Setup for Elastic VMware Service (EVS) - Deleting CloudFormation Stack </i>
+  
 For additional information on troubleshooting your Amazon EVS Environment, [please refer to the documentation](https://docs.aws.amazon.com/evs/latest/userguide/troubleshooting.html).
 
 ## Cleanup
-Note that the EVS environment must be manually removed before the CloudFormation stack is deleted.
-1. Delete EVS hosts:
+Please note that the EVS environment must be manually removed before the CloudFormation stack is deleted.
+
+1. Delete EVS ESXi hosts:
 ```bash
 aws evs delete-environment-host --environment-id [environment-id] --host [host] 
 ```
@@ -292,8 +320,7 @@ aws evs delete-environment --environment-id [environment-id]
 aws cloudformation delete-stack --stack-name evs-environment
 ```
 
-4. Verify all resources are properly cleaned up in the AWS Console
-
+4. Verify that all EVS and related resources are properly cleaned up in the AWS Console
 
 ## Notices
 
