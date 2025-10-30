@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: This template creates the necessary DNS entries in Route 53, Route Server components, underlying infrastructure, and a  single Amazon EVS environment.
+Description: (SO9654) Guidance template creates the necessary DNS entries in Route 53, Route Server components, underlying infrastructure, and a  single Amazon EVS environment.
 Metadata:
   Source: TBD
   AWS::CloudFormation::Interface:
