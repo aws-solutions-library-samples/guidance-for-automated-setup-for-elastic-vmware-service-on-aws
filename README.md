@@ -30,7 +30,7 @@ This Guidance provides an automated solution for deploying Amazon Elastic VMware
 <img src="assets/evs_reference_archtecture1.jpg" width="70%">
 <i>Figure 1:  Automated Configuration of Elastic VMware Service (EVS) - Reference Architecture </i>
 
-The provided CloudFormation [template](https://github.com/aws-solutions-library-samples/guidance-for-automated-setup-for-elastic-vmware-service-on-aws/blob/main/deployment/evs_create_world.yaml) creates and configures the following:
+<br/>The provided [CloudFormation Template](https://github.com/aws-solutions-library-samples/guidance-for-automated-setup-for-elastic-vmware-service-on-aws/blob/main/deployment/evs_create_world.yaml) creates and configures the following services:
 
 **Architecture Steps**:
 
