@@ -34,7 +34,7 @@ This Guidance provides an automated solution for deploying Amazon Elastic VMware
 
 **Architecture Steps**:
 
-1. Developer/ DevOps users  layer uses AWS CLI, and [AWS CloudFormation(CFN)](https://aws.amazon.com/cloudformation/) for Infrastructure as code (IaC) deployment. This automation enables programmatic provisioning of [Amazon Elastic VMware Service (EVS)](https://aws.amazon.com/evs/) service infrastructure through standardized AWS API and declarative CFN template .
+1. Developer/ DevOps users AWS CLI and [AWS CloudFormation(CFN)](https://aws.amazon.com/cloudformation/) for Infrastructure as code (IaC) deployment. This automation enables programmatic provisioning of [Amazon Elastic VMware Service (EVS)](https://aws.amazon.com/evs/) service and its dependencies through standardized AWS API and declarative CFN template.
 
 2. The CFN provisions Amazon EVS as the primary service, integrated with essential AWS infrastructure services:
    - [Amazon Route 53](https://aws.amazon.com/route53/) DNS zones and records for forward and reverse lookups,
