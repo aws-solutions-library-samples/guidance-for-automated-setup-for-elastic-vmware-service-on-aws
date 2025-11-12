@@ -27,17 +27,24 @@ This Guidance provides an automated solution for deploying Amazon Elastic VMware
 
 ### Architecture
 
-<img src="assets/automation_evs_reference_architecture.jpg" width="70%">
-<i>Figure 1:  Automated Setup for Elastic VMware Service (EVS) - Reference Architecture </i>
+<img src="assets/evs_reference_archtecture1.jpg" width="70%">
+<i>Figure 1:  Automated Configuration of Elastic VMware Service (EVS) - Reference Architecture </i>
 
-The CloudFormation [template](https://github.com/aws-solutions-library-samples/guidance-for-automated-setup-for-elastic-vmware-service-on-aws/blob/main/deployment/evs_create_world.yaml) creates and configures the following:
+The provided CloudFormation [template](https://github.com/aws-solutions-library-samples/guidance-for-automated-setup-for-elastic-vmware-service-on-aws/blob/main/deployment/evs_create_world.yaml) creates and configures the following:
 
-1. Route 53 DNS zones and records for forward and reverse lookups
-2. VPC networking infrastructure
-3. VPC Route Server configuration
-4. EVS environment with 4-node ESXi cluster
+**Architecture Steps**:
 
-**Key Components and Their Relationships**:
+1. Developer/ DevOps users  layer uses AWS CLI, and [AWS CloudFormation(CFN)](https://aws.amazon.com/cloudformation/) for Infrastructure as code (IaC) deployment. This automation enables programmatic provisioning of [Amazon Elastic VMware Service (EVS)](https://aws.amazon.com/evs/) service infrastructure through standardized AWS API and declarative CFN template .
+
+2. The CFN provisions Amazon EVS as the primary service, integrated with essential AWS infrastructure services:
+   - [Amazon Route 53](https://aws.amazon.com/route53/) DNS zones and records for forward and reverse lookups,
+   - [Amazon VPC](https://aws.amazon.com/vpc/) networking infrastructure,
+   - [Amazon VPC Route Server](https://aws.amazon.com/blogs/networking-and-content-delivery/dynamic-routing-using-amazon-vpc-route-server/) for dynamic routing within Amazon VPC using Border Gateway Protocol (BGP).,
+   - 4-node ESXi cluster using bare metal [Amazon EC2](https://aws.amazon.com/ec2/) instances
+   
+3. Using Amazon EVS service, users can deploy and interact with familiar VMware tools and services: SDDC Manager for infrastructure management, vSphere for virtualization, vSAN for storage virtualization, NSX for networking virtualization, along with other AWS services that can integrate with the VMware environment.
+
+**Solution Key Components and Their Relationships**:
 
 1. **VPC Infrastructure**
  - Underlay VPC with specified CIDR block
