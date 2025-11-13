@@ -40,47 +40,48 @@ This Guidance provides an automated solution for deploying Amazon Elastic VMware
    - [Amazon Route 53](https://aws.amazon.com/route53/) DNS zones and records for forward and reverse lookups,
    - [Amazon VPC](https://aws.amazon.com/vpc/) networking infrastructure,
    - [Amazon VPC Route Server](https://aws.amazon.com/blogs/networking-and-content-delivery/dynamic-routing-using-amazon-vpc-route-server/) for dynamic routing within Amazon VPC using Border Gateway Protocol (BGP).,
-   - 4-node ESXi cluster using bare metal [Amazon EC2](https://aws.amazon.com/ec2/) instances
+   - 4-node ESXi hypervisor cluster using bare metal [Amazon EC2](https://aws.amazon.com/ec2/) instances
    
-3. Using Amazon EVS service, users can deploy and interact with familiar VMware tools and services: SDDC Manager for infrastructure management, vSphere for virtualization, vSAN for storage virtualization, NSX for networking virtualization, along with other AWS services that can integrate with the VMware environment.
+3. Using Amazon EVS service, users can deploy and interact with familiar VMware tools and services: SDDC Manager for infrastructure management, vSphere for virtualization, vSAN for storage virtualization, NSX for networking virtualization, along with other native AWS services that can integrate with the VMware environment.
+4. AWS services that can be integrated with Amazon EVS include: Amazon EC2, Amazon Elastic Load Balancing (ELB), Amazon FSx, AWS System Manager, Amazon S3, Amazon Identity and Access Management (IAM), Amazon Cloud Watch, AWS System manager and others.  
 
-**Solution Key Components and Their Relationships**:
+**Key Architectural Components and their Relationships**:
 
 1. **VPC Infrastructure**
- - Underlay VPC with specified CIDR block
- - Two subnets:
-     Service Access Subnet (`MyCIDR.0.0/24`)
-     Public Access Subnet (`MyCIDR.5.0/24`)
+   - Underlay VPC with specified CIDR block
+   - Two subnets:
+       Service Access Subnet (`MyCIDR.0.0/24`)
+       Public Access Subnet (`MyCIDR.5.0/24`)
 
 2. **Networking Components**
- - Internet Gateway for public internet access
- - NAT Gateway for private subnet Internet access
- - Route Server (`ASN 65022`) with two Route Server endpoints and corresponding peers
- - Optional Transit Gateway connection
+   - Internet Gateway for public internet access
+   - NAT Gateway for private subnet Internet access
+   - Route Server (`ASN 65022`) with two Route Server endpoints and corresponding peers
+   - Optional AWS Transit Gateway connection
 
 3. **DNS Infrastructure**
- - Route 53 Resolver Endpoints
- - Forward and Reverse lookup zones
- - DHCP Options Set with custom DNS settings
+   - Route 53 Resolver Endpoints
+   - Forward and Reverse lookup zones
+   - DHCP Options Set with custom DNS settings
 
 4. **EVS Environment**
- - 4 ESXi hosts (`i4i.metal` instances)
- - VMware vCenter Server
- - NSX Manager Cluster (3 nodes)
- - NSX Edge Cluster (2 nodes)
- - SDDC Manager
- - Cloud Builder
+   - 4 ESXi hosts (`i4i.metal` instances)
+   - VMware vCenter Server
+   - NSX Manager Cluster (3 nodes)
+   - NSX Edge Cluster (2 nodes)
+   - SDDC Manager
+   - Cloud Builder
 
 5. **Network Segments (VLANs)**
- - VMkernel Management (`MyCIDR.10.0/24`)
- - vMotion (`MyCIDR.20.0/24`)
- - vSAN (`MyCIDR.30.0/24`)
- - VTEP (`MyCIDR.40.0/24`)
- - Edge VTEP (`MyCIDR.50.0/24`)
- - VM Management (`MyCIDR.60.0/24`)
- - HCX (`MyCIDR.70.0/24`)
- - NSX Uplink (`MyCIDR.80.0/24`)
- - 2x Expansion VLANs (`MyCIDR.90.0/24` & `MyCIDR.100.0/24`)
+   - VMkernel Management (`MyCIDR.10.0/24`)
+   - vMotion (`MyCIDR.20.0/24`)
+   - vSAN (`MyCIDR.30.0/24`)
+   - VTEP (`MyCIDR.40.0/24`)
+   - Edge VTEP (`MyCIDR.50.0/24`)
+   - VM Management (`MyCIDR.60.0/24`)
+   - HCX (`MyCIDR.70.0/24`)
+   - NSX Uplink (`MyCIDR.80.0/24`)
+   - 2x Expansion VLANs (`MyCIDR.90.0/24` & `MyCIDR.100.0/24`)
    
 ### AWS Services in this Guidance
 
@@ -90,7 +91,8 @@ This Guidance provides an automated solution for deploying Amazon Elastic VMware
 | [Amazon Elastic Compute Cloud](https://aws.amazon.com/ec2/) (EC2) | Core service | Provides the compute instances for ESXi hosts. |
 | [Amazon Virtual Private Cloud](https://aws.amazon.com/vpc/) (VPC) | Core Service | Creates an isolated network environment with public and private subnets across multiple Availability Zones. |
 | [Amazon Elastic Block Store](https://aws.amazon.com/ebs) (EBS) | Core service | Provides persistent block storage volumes for EC2 instances |
-| [Amazon Rote 53](https://aws.amazon.com/route53/)| Core Service| Provides Forward and Reverse DNS lookup record for components of EVS service |
+| [Amazon Route 53](https://aws.amazon.com/route53/)| Core Service| Provides Forward and Reverse DNS lookup record for components of EVS service |
+| [Amazon Transit Gateway](https://aws.amazon.com/transit-gateway/) (TGW) | Supporting service | Connect Amazon VPCs, AWS accounts, and on-premises networks to a single gateway |
 | [AWS Identity and Access Management](https://aws.amazon.com/iam/) (IAM) | Supporting service | Manages access to AWS services and resources securely |
 | [Amazon CloudWatch](https://aws.amazon.com/cloudwatch/) | Supporting service | Collects and tracks metrics, logs, and events from AWS resources provisoned in the guidance |
 | [AWS CloudFormation](https://aws.amazon.com/cloudformation/) | Supporting service| Speed up cloud provisioning with infrastructure as code. 
