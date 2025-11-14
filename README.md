@@ -25,6 +25,7 @@
 
 This Guidance provides an automated solution for deploying Amazon Elastic VMware Service (EVS) environments using AWS CloudFormation. It simplifies the complex process of setting up EVS by automating the creation of required networking infrastructure, Route 53 DNS configuration, and EVS environment deployment.
 
+## Architecture
 ### Deployment Architecture
 
 <img src="assets/evs_reference_archtecture1.jpg" width="70%">
@@ -71,8 +72,8 @@ This Guidance provides an automated solution for deploying Amazon Elastic VMware
 1. **VPC Infrastructure**
    - Underlay VPC with specified CIDR block
    - Two subnets:
-       Service Access Subnet (`MyCIDR.0.0/24`)
-       Public Access Subnet (`MyCIDR.5.0/24`)
+       - Service Access Subnet (`MyCIDR.0.0/24`)
+       - Public Access Subnet (`MyCIDR.5.0/24`)
 
 2. **Networking Components**
    - Internet Gateway for public internet access
@@ -190,7 +191,6 @@ git clone https://github.com/aws-solutions-library-samples/guidance-for-automate
 ```bash
 cd guidance-for-automated-setup-for-elastic-vmware-service-on-aws/deployment
 ```
-
 3. Deploy the CloudFormation template 
 
 ```bash
@@ -205,21 +205,26 @@ aws cloudformation create-stack \
     ParameterKey=MyVsanKey,ParameterValue=your-vsan-key
 ```
 
-#### Deployment Validation
+### Deployment Validation
 
 1. Monitor the CloudFormation stack status in the AWS Console or using command:
 ```bash
 aws cloudformation describe-stacks --stack-name evs-environment
 ```
+
 ### Deploy Using AWS CloudFormation Console
 
-1. Sign in to the AWS Management Console and open the CloudFormation [console](https://console.aws.amazon.com/cloudformation/)
-2. Choose "Create stack" and then select "With new resources (standard)".
-3. In the "Specify template" section, select "Upload a template file".
-4. Click "Choose file" and navigate to the cloned repository directory, `deployment` subdirectory.
-5. Select the `evs_create_world.yaml` file and click "Open".
-6. Click "Next".
-7. On the "Specify stack details" page:
+1. Clone this guidance code repository:
+```bash
+git clone https://github.com/aws-solutions-library-samples/guidance-for-automated-setup-for-elastic-vmware-service-on-aws.git
+```
+2. Sign in to the AWS Management Console and open the CloudFormation [console](https://console.aws.amazon.com/cloudformation/)
+3. Choose "Create stack" and then select "With new resources (standard)".
+4. In the "Specify template" section, select "Upload a template file".
+5. Click "Choose file" and navigate to the cloned repository directory, `deployment` subdirectory.
+6. Select the `evs_create_world.yaml` file and click "Open".
+7. Click "Next".
+8. On the "Specify stack details" page:
 - Enter a Stack name (e.g., "EVS-Automated-Deployment")
 - Fill in the required parameters:
   - `MyFQDN`: The fully qualified domain name for your EVS environment
@@ -228,13 +233,13 @@ aws cloudformation describe-stacks --stack-name evs-environment
   - `MySolutionKey`: Your VCF solution license key - **must be valid**
   - `MyVsanKey`: Your vSAN license key- **must be valid**
   - (Fill in any other required parameters as specified in the template)
-8. Click "Next".
-9. On the "Configure Stack options" page, you can add tags, set permissions, and configure advanced options if needed. For most deployments, you can leave these settings at their defaults.
-10. Click "Next".
-11. On the "Review" page, review your settings. Be sure to check the acknowledgment at the bottom of the page if your template creates IAM resources.
-12. Click "Create stack".
+9. Click "Next".
+10. On the "Configure Stack options" page, you can add tags, set permissions, and configure advanced options if needed. For most deployments, you can leave these settings at their defaults.
+11. Click "Next".
+12. On the "Review" page, review your settings. Be sure to check the acknowledgment at the bottom of the page if your template creates IAM resources.
+13. Click "Create stack".
 
->NOTE: CloudFormation stack will now begin creating the AWS resources for your EVS environment. This process can take several hours to complete.
+>NOTE: **CloudFormation stack will now begin creating the AWS resources for your EVS environment. This process may take several hours to complete**.
 
 #### Monitor Console Deployment Progress
 
@@ -253,7 +258,7 @@ After the CloudFormation stack creation is complete:
 - `ServiceAccessSubnetId`: The ID of the subnet used for service access
 - `Route53ForwardZoneId` and `Route53ReverseZoneId`: IDs for the DNS zones
 - Other relevant IDs and IP addresses
-- Here is an example of the complete set of resources that get deployed:
+- Here is an example of the complete set of AWS resources that get deployed:
   <img src="assets/resources1.png">
   <img src="assets/resources2.png">
   <img src="assets/resources3.png">
@@ -309,7 +314,7 @@ After successful guidance deployment, follow these steps to access your EVS envi
    - NSX Manager
    - SDDC Manager
 
-For detailed instructions on using EVS, refer to the [Amazon EVS User Guide](https://docs.aws.amazon.com/evs/latest/userguide/).
+For detailed instructions on using EVS service, refer to the [Amazon EVS User Guide](https://docs.aws.amazon.com/evs/latest/userguide/).
 
 ## Next Steps
 
@@ -321,7 +326,7 @@ For detailed instructions on using EVS, refer to the [Amazon EVS User Guide](htt
 
 ## Troubleshooting
 
-1. Prior to the launch of this CloudFormation [template](https://github.com/aws-solutions-library-samples/guidance-for-automated-setup-for-elastic-vmware-service-on-aws/blob/main/deployment/evs_create_world.yaml), verify that you have correctly entered your VCF-related license information
+1. Prior to the launch of this CloudFormation [template](https://github.com/aws-solutions-library-samples/guidance-for-automated-setup-for-elastic-vmware-service-on-aws/blob/main/deployment/evs_create_world.yaml), verify that you have correctly entered your VCF-related Broadcom license information
 2. In the event of a deployment failure we recommend the following:
    1. If the failure occurred during the deployment of the EVS Environment, please open a support case
    2. If the failure occurred prior to the deployment of the EVS Environment, take note of the errors, delete the Stack and try again 
@@ -347,7 +352,6 @@ aws evs delete-environment --environment-id [environment-id]
 ```bash
 aws cloudformation delete-stack --stack-name evs-environment
 ```
-
 4. Verify that all EVS and related resources are properly cleaned up in the AWS Console
 
 ## Notices
