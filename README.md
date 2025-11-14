@@ -25,14 +25,14 @@
 
 This Guidance provides an automated solution for deploying Amazon Elastic VMware Service (EVS) environments using AWS CloudFormation. It simplifies the complex process of setting up EVS by automating the creation of required networking infrastructure, Route 53 DNS configuration, and EVS environment deployment.
 
-### Architecture
+### Deployment Architecture
 
 <img src="assets/evs_reference_archtecture1.jpg" width="70%">
 <i>Figure 1:  Automated Configuration of Elastic VMware Service (EVS) - Reference Architecture </i>
 
 <br/>The provided [CloudFormation Template](https://github.com/aws-solutions-library-samples/guidance-for-automated-setup-for-elastic-vmware-service-on-aws/blob/main/deployment/evs_create_world.yaml) creates and configures the following services:
 
-**Architecture Steps**:
+**Depoyment Architecture Steps**:
 
 1. Developer/ DevOps users AWS CLI and [AWS CloudFormation(CFN)](https://aws.amazon.com/cloudformation/) for Infrastructure as code (IaC) deployment. This automation enables programmatic provisioning of [Amazon Elastic VMware Service (EVS)](https://aws.amazon.com/evs/) service and its dependencies through standardized AWS API and declarative CFN template.
 
@@ -45,7 +45,28 @@ This Guidance provides an automated solution for deploying Amazon Elastic VMware
 3. Using Amazon EVS service, users can deploy and interact with familiar VMware tools and services: SDDC Manager for infrastructure management, vSphere for virtualization, vSAN for storage virtualization, NSX for networking virtualization, along with other native AWS services that can integrate with the VMware environment.
 4. AWS services that can be integrated with Amazon EVS include: Amazon EC2, Amazon Elastic Load Balancing (ELB), Amazon FSx, AWS System Manager, Amazon S3, Amazon Dynamo DB, Amazon Cloud Watch, AWS System Manager and others.  
 
-**Key Architectural Components and their Relationships**:
+### External Connectivity Architecture
+<img src="assets/evs_reference_archtecture2.jpg" width="70%">
+<i>Figure 2:  Setting up network access to Amazon EVS via AWS Direct Connect and AWS Transit Gateway service</i>
+
+**Connectivity Architecture Steps**:
+1. Create Amazon Route 53 forward and reverse hosted zones in the target AWS Region. Set up Amazon Route 53 inbound resolver endpoints so the Amazon Elastic Vmware (EVS) management components and ESXi hosts can resolve DNS names properly (implemented by CloudFormation template, see Slide 1). 
+2. Amazon Virtual Private Cloud (VPC) is built with service access and public subnets in a single Availability Zone. Amazon Internet Gateway and NAT Gateway provide outbound internet access for private subnets. A custom DHCP Option Set is created to use the inbound resolvers from step 1 for DNS resolution and applied to the VPC. Deploy Amazon VPC Route Server with two endpoints in the service access subnet to handle BGP route exchange between Amazon EVS overlay networks and AWS underlay infrastructure.
+3. Provision AWS Transit Gateway with Amazon VPC attachment and connect to the service access Subnet. 
+4. For external connectivity, users may set up AWS Direct Connect Gateway to connect their corporate data center to the AWS Region and configure BGP routing to advertise routes between the on-premises network and AWS Transit Gateway for Amazon EVS workload migration.
+
+### Internal EVS Service Connectivity Architecture
+<img src="assets/evs_reference_archtecture3.jpg" width="70%">
+<i>Figure 3:  Internal connectivity and network topology of Amazon EVS components</i>
+
+**Internal EVS Connectivity Architecture Steps**:
+
+1. Amazon Elastic VMware Service (EVS) will provision Amazon (EC2) i4i.metal type instances for ESXi hosts using user provided Broadcom/VMware  keys and credentials. Amazon EVS will configure the initial VLAN subnets for host management, vMotion, vSAN, and NSX overlay networks.
+2. The Amazon EVS deployment process includes initializing vSphere cluster and deploying the VMware Cloud Foundation software including the vCenter Server, SDDC Manager, and Cloud Builder appliances in the VM Management VLAN network segments.
+3. The Amazon EVS deployment process will also deploy a three-node NSX Manager Cluster and a two-node NSX Edge Cluster.
+
+
+**Architectural Components and their Relationships**:
 
 1. **VPC Infrastructure**
    - Underlay VPC with specified CIDR block
@@ -156,7 +177,6 @@ When you build systems on AWS infrastructure, security responsibilities are shar
 
 Organizations will need to ensure the security of their underlay VPC, subnets, Transit Gateway (if deployed), and all VMware NSX firewall rules meet their respective security standards. It is important to note that AWS Security Groups do not function on elastic network interfaces that are attached to Amazon EVS VLAN subnets. To control traffic to and from Amazon EVS VLAN subnets, you must use a network access control list. For more information, [review the EVS documentation here](https://docs.aws.amazon.com/evs/latest/userguide/getting-started.html#getting-started-create-nacl-vlan-traffic).
 
-
 ## Deployment Steps
 
 ### Deployment Using CLI
@@ -185,16 +205,15 @@ aws cloudformation create-stack \
     ParameterKey=MyVsanKey,ParameterValue=your-vsan-key
 ```
 
-### Deployment Validation
+#### Deployment Validation
 
 1. Monitor the CloudFormation stack status in the AWS Console or using command:
 ```bash
 aws cloudformation describe-stacks --stack-name evs-environment
 ```
-
 ### Deploy Using AWS CloudFormation Console
 
-1. Sign in to the AWS Management Console and open the CloudFormation console at `https://console.aws.amazon.com/cloudformation/`
+1. Sign in to the AWS Management Console and open the CloudFormation [console](https://console.aws.amazon.com/cloudformation/)
 2. Choose "Create stack" and then select "With new resources (standard)".
 3. In the "Specify template" section, select "Upload a template file".
 4. Click "Choose file" and navigate to the cloned repository directory, `deployment` subdirectory.
@@ -217,15 +236,15 @@ aws cloudformation describe-stacks --stack-name evs-environment
 
 >NOTE: CloudFormation stack will now begin creating the AWS resources for your EVS environment. This process can take several hours to complete.
 
-## Monitor Console Deployment Progress
+#### Monitor Console Deployment Progress
 
 1. On the CloudFormation console, select your stack.
 2. Go to the "Events" tab to monitor the creation progress.
 3. Once the status changes to "CREATE_COMPLETE", your EVS environment is ready. In case of any failure, examine the root cause of failure, make correction and try again. 
 
-## View Console Outputs
+### Review Console Outputs
 
-After the stack creation is complete:
+After the CloudFormation stack creation is complete:
 
 1. Go to the "Resources" tab of your stack.
 2. Here you will find important information about your deployed resources, including:
@@ -238,11 +257,11 @@ After the stack creation is complete:
   <img src="assets/resources1.png">
   <img src="assets/resources2.png">
   <img src="assets/resources3.png">
-  <i>Figure 2:  Automated Setup for Elastic VMware Service (EVS) - Resources created by CloudFormation Stack </i>
+  <i>Figure 4:  Automated Setup for Elastic VMware Service (EVS) - Resources created by CloudFormation Stack </i>
   
 3. You can review the input parameters at any time in the parameters tab:
   <img src="assets/parameters.png">
-  <i>Figure 3:  Automated Setup for Elastic VMware Service (EVS) - Input Parameters used by CloudFormation Stack </i>
+  <i>Figure 5:  Automated Setup for Elastic VMware Service (EVS) - Input Parameters used by CloudFormation Stack </i>
 
 Make note of these outputs as they will be useful for further configuration and management of your EVS environment.
 
@@ -253,10 +272,10 @@ aws evs get-environment --environment-id [environment-id]
 ```
 Here are example views of the host and network tab respectively:
 <img src="assets/hosts.png">
-<i>Figure 4:  Automated Setup for Elastic VMware Service (EVS) - ESXi Hosts</i>
+<i>Figure 6:  Automated Setup for Elastic VMware Service (EVS) - ESXi Hosts</i>
 
 <img src="assets/networks.png">
-<i>Figure 5:  Automated Setup for Elastic VMware Service (EVS) - Networking</i>
+<i>Figure 7:  Automated Setup for Elastic VMware Service (EVS) - Networking</i>
  
 2. Validate Route 53 configuration via the AWS console or using the following commands:
    a. Check that the hosted zones are created:
@@ -269,10 +288,10 @@ Here are example views of the host and network tab respectively:
    ```
    Here is an example of the forward and reverse record sets:
    <img src="assets/dns_forward.png">
-   <i>Figure 6:  Automated Setup for Elastic VMware Service (EVS) - Forward Lookup DNS records</i>
+   <i>Figure 8:  Automated Setup for Elastic VMware Service (EVS) - Forward Lookup DNS records</i>
    
    <img src="assets/dns_reverse.png">
-   <i>Figure 7:  Automated Setup for Elastic VMware Service (EVS) - Reverse Lookup DNS records</i>
+   <i>Figure 9:  Automated Setup for Elastic VMware Service (EVS) - Reverse Lookup DNS records</i>
    
    c. Test DNS resolution for a few key components:
    ```bash
@@ -307,7 +326,7 @@ For detailed instructions on using EVS, refer to the [Amazon EVS User Guide](htt
    1. If the failure occurred during the deployment of the EVS Environment, please open a support case
    2. If the failure occurred prior to the deployment of the EVS Environment, take note of the errors, delete the Stack and try again 
    <img src="assets/deletestack.png" alt="CloudFormation Stack Delete">
-  <i>Figure 8:  Automated Setup for Elastic VMware Service (EVS) - Deleting CloudFormation Stack </i>
+  <i>Figure 10:  Automated Setup for Elastic VMware Service (EVS) - Deleting CloudFormation Stack </i>
   
 For additional information on troubleshooting your Amazon EVS Environment, [please refer to the documentation](https://docs.aws.amazon.com/evs/latest/userguide/troubleshooting.html).
 
