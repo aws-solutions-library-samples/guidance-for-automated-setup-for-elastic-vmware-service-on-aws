@@ -40,10 +40,10 @@ This Guidance provides an automated solution for deploying Amazon Elastic VMware
    - [Amazon Route 53](https://aws.amazon.com/route53/) DNS zones and records for forward and reverse lookups,
    - [Amazon VPC](https://aws.amazon.com/vpc/) networking infrastructure,
    - [Amazon VPC Route Server](https://aws.amazon.com/blogs/networking-and-content-delivery/dynamic-routing-using-amazon-vpc-route-server/) for dynamic routing within Amazon VPC using Border Gateway Protocol (BGP).,
-   - 4-node ESXi hypervisor cluster using bare metal [Amazon EC2](https://aws.amazon.com/ec2/) instances
+   - 4-node VMware ESXi hypervisor cluster using bare metal [Amazon EC2](https://aws.amazon.com/ec2/) instances
    
 3. Using Amazon EVS service, users can deploy and interact with familiar VMware tools and services: SDDC Manager for infrastructure management, vSphere for virtualization, vSAN for storage virtualization, NSX for networking virtualization, along with other native AWS services that can integrate with the VMware environment.
-4. AWS services that can be integrated with Amazon EVS include: Amazon EC2, Amazon Elastic Load Balancing (ELB), Amazon FSx, AWS System Manager, Amazon S3, Amazon Identity and Access Management (IAM), Amazon Cloud Watch, AWS System manager and others.  
+4. AWS services that can be integrated with Amazon EVS include: Amazon EC2, Amazon Elastic Load Balancing (ELB), Amazon FSx, AWS System Manager, Amazon S3, Amazon Dynamo DB, Amazon Cloud Watch, AWS System Manager and others.  
 
 **Key Architectural Components and their Relationships**:
 
