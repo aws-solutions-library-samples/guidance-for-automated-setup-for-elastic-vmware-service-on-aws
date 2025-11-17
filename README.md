@@ -67,7 +67,7 @@ This Guidance provides an automated solution for deploying Amazon Elastic VMware
 3. The Amazon EVS deployment process will also deploy a three-node NSX Manager Cluster and a two-node NSX Edge Cluster.
 
 
-**Architectural Components and their Relationships**:
+## Architectural Components and their Relationships:
 
 1. **VPC Infrastructure**
    - Underlay VPC with specified CIDR block
