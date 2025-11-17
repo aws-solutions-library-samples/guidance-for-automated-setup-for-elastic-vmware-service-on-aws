@@ -62,7 +62,7 @@ This Guidance provides an automated solution for deploying Amazon Elastic VMware
 
 **Internal EVS Connectivity Architecture Steps**:
 
-1. Amazon Elastic VMware Service (EVS) will provision Amazon (EC2) i4i.metal type instances for ESXi hosts using user provided Broadcom/VMware  keys and credentials. Amazon EVS will configure the initial VLAN subnets for host management, vMotion, vSAN, and NSX overlay networks.
+1. Amazon Elastic VMware Service (EVS) will provision Amazon (EC2) **i4i.metal** type instances for ESXi hosts using user provided Broadcom/VMware  keys and credentials. Amazon EVS will configure the initial VLAN subnets for host management, vMotion, vSAN, and NSX overlay networks.
 2. The Amazon EVS deployment process includes initializing vSphere cluster and deploying the VMware Cloud Foundation software including the vCenter Server, SDDC Manager, and Cloud Builder appliances in the VM Management VLAN network segments.
 3. The Amazon EVS deployment process will also deploy a three-node NSX Manager Cluster and a two-node NSX Edge Cluster.
 
@@ -129,7 +129,7 @@ We recommend creating a [Budget](https://docs.aws.amazon.com/cost-management/lat
 
 | AWS Service                     | Dimensions                               | Cost [USD] |
 |---------------------------------|------------------------------------------|------------|
-| Amazon EC2 (ESXi hosts)         | 4 i4i.metal instances per month          | $7,603.20  |
+| Amazon EC2 (ESXi hosts)         | 4 **i4i.metal** instances per month          | $7,603.20  |
 | Amazon EVS Control Plane        | Per host per hour                        | $0.92      |
 | NAT Gateway                     | 1 NAT Gateway with data transfer         | $32.85     |
 | Route 53                        | Hosted zones and queries                 | $1.00      |
@@ -170,7 +170,7 @@ This CloudFormation template is designed to work exclusively with Amazon Route 5
 
 The following service quotas must be available:
 - EVS host count per environment: Minimum 4
-- EC2 Running On-Demand i4i.metal instances: 512 vCPUs (4 instances × 128 vCPUs)
+- EC2 Running On-Demand **i4i.metal** instances: 512 vCPUs (4 instances × 128 vCPUs)
 
 ### Security
 
