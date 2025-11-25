@@ -127,9 +127,9 @@ We recommend creating a [Budget](https://docs.aws.amazon.com/cost-management/lat
 
 ### Sample Cost Table
 
-| AWS Service                     | Dimensions                               | Cost [USD] |
+| AWS Service                     | Dimensions                               | Cost [USD/month] |
 |---------------------------------|------------------------------------------|------------|
-| Amazon EC2 (ESXi hosts)         | 4 **i4i.metal** instances per month          | $7,603.20  |
+| Amazon EC2 (ESXi hosts)         | 4 **i4i.metal** instances                | $7,603.20  |
 | Amazon EVS Control Plane        | Per host per hour                        | $0.92      |
 | NAT Gateway                     | 1 NAT Gateway with data transfer         | $32.85     |
 | Route 53                        | Hosted zones and queries                 | $1.00      |
