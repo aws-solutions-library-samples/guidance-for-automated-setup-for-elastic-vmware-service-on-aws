@@ -29,7 +29,7 @@ This Guidance provides an automated solution for deploying Amazon Elastic VMware
 ### Deployment Architecture
 
 <img src="assets/evs_reference_archtecture1.jpg" width="70%">
-<i>Figure 1:  Automated Configuration of Elastic VMware Service (EVS) - Reference Architecture </i>
+<i>Figure 1:  On-premise service mapping and deployment of Elastic VMware Service (EVS) components on AWS</i>
 
 <br/>The provided [CloudFormation Template](https://github.com/aws-solutions-library-samples/guidance-for-automated-setup-for-elastic-vmware-service-on-aws/blob/main/deployment/evs_create_world.yaml) creates and configures the following services:
 
@@ -48,7 +48,8 @@ This Guidance provides an automated solution for deploying Amazon Elastic VMware
 
 ### External Connectivity Architecture
 <img src="assets/evs_reference_archtecture2.jpg" width="70%">
-<i>Figure 2:  Setting up network access to Amazon EVS via AWS Direct Connect and AWS Transit Gateway service</i>
+<i>Figure 2:  External Network access to Amazon EVS services</i>
+<br/>
 
 **Connectivity Architecture Steps**:
 1. Create Amazon Route 53 forward and reverse hosted zones in the target AWS Region. Set up Amazon Route 53 inbound resolver endpoints so the Amazon Elastic Vmware (EVS) management components and ESXi hosts can resolve DNS names properly (implemented by CloudFormation template, see Slide 1). 
@@ -58,11 +59,12 @@ This Guidance provides an automated solution for deploying Amazon Elastic VMware
 
 ### Internal EVS Service Connectivity Architecture
 <img src="assets/evs_reference_archtecture3.jpg" width="70%">
-<i>Figure 3:  Internal connectivity and network topology of Amazon EVS components</i>
+<i>Figure 3:  Internal Connectivity and Network topology of Amazon EVS components</i>
+<br/>
 
 **Internal EVS Connectivity Architecture Steps**:
 
-1. Amazon Elastic VMware Service (EVS) will provision Amazon (EC2) **i4i.metal** type instances for ESXi hosts using user provided Broadcom/VMware  keys and credentials. Amazon EVS will configure the initial VLAN subnets for host management, vMotion, vSAN, and NSX overlay networks.
+1. Amazon Elastic VMware Service (EVS) will provision four Amazon (EC2) **i4i.metal** type instances for ESXi hosts using user provided Broadcom/VMware  keys and credentials. Amazon EVS will configure the initial VLAN subnets for host management, vMotion, vSAN, and NSX overlay networks.
 2. The Amazon EVS deployment process includes initializing vSphere cluster and deploying the VMware Cloud Foundation software including the vCenter Server, SDDC Manager, and Cloud Builder appliances in the VM Management VLAN network segments.
 3. The Amazon EVS deployment process will also deploy a three-node NSX Manager Cluster and a two-node NSX Edge Cluster.
 
@@ -112,16 +114,16 @@ This Guidance provides an automated solution for deploying Amazon Elastic VMware
 | [Amazon Elastic VMware Service](https://aws.amazon.com/evs/)/) (EVS) | Core service | Provides environment for running component of VMware environment on AWS |
 | [Amazon Elastic Compute Cloud](https://aws.amazon.com/ec2/) (EC2) | Core service | Provides the compute instances for ESXi hosts. |
 | [Amazon Virtual Private Cloud](https://aws.amazon.com/vpc/) (VPC) | Core Service | Creates an isolated network environment with public and private subnets across multiple Availability Zones. |
-| [Amazon Elastic Block Store](https://aws.amazon.com/ebs) (EBS) | Core service | Provides persistent block storage volumes for EC2 instances |
 | [Amazon Route 53](https://aws.amazon.com/route53/)| Core Service| Provides Forward and Reverse DNS lookup record for components of EVS service |
+| [AWS CloudFormation](https://aws.amazon.com/cloudformation/) | Core service| Automate AWS resource provisioning with infrastructure as code |
 | [Amazon Transit Gateway](https://aws.amazon.com/transit-gateway/) (TGW) | Supporting service | Connect Amazon VPCs, AWS accounts, and on-premises networks to a single gateway |
 | [AWS Identity and Access Management](https://aws.amazon.com/iam/) (IAM) | Supporting service | Manages access to AWS services and resources securely |
 | [Amazon CloudWatch](https://aws.amazon.com/cloudwatch/) | Supporting service | Collects and tracks metrics, logs, and events from AWS resources provisoned in the guidance |
-| [AWS CloudFormation](https://aws.amazon.com/cloudformation/) | Supporting service| Speed up cloud provisioning with infrastructure as code. 
+
 
 ### Cost
 
-You are responsible for the cost of the AWS services used while running this Guidance. As of September 2025, the cost for running this Guidance with the default settings in the US East (N. Virginia) Region `us-east-1` is approximately _$7730 per month_ for a standard 4 ESXi node deployment.
+You are responsible for the cost of the AWS services used while running this Guidance. As of September 2025, the cost for running this Guidance with the default settings in the US East (N. Virginia) Region `us-east-1` is approximately _$36,260.41 per month_ for a standard 4 ESXi node deployment (please also see the Note below the Sample Cost table).
 
 We recommend creating a [Budget](https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html) through [AWS Cost Explorer](https://aws.amazon.com/aws-cost-management/aws-cost-explorer/) to help manage costs. Prices are subject to change. For full details, refer to the pricing webpage for each AWS service used in this Guidance.
 
@@ -129,15 +131,14 @@ We recommend creating a [Budget](https://docs.aws.amazon.com/cost-management/lat
 
 | AWS Service                     | Dimensions                               | Cost [USD/month] |
 |---------------------------------|------------------------------------------|------------|
-| Amazon EC2 (ESXi hosts)         | 4 **i4i.metal** instances                | $7,603.20  |
-| Amazon EVS Control Plane        | Per host per hour                        | $0.92      |
-| NAT Gateway                     | 1 NAT Gateway with data transfer         | $32.85     |
-| Route 53                        | Hosted zones and queries                 | $1.00      |
-| VPC Route Server                | 1 Route Server with 2 endpoints per hour | $0.40      |
-| Data Transfer                   | 1 TB outbound                            | $90.00     |
-|**Total:**                       |                                          | **$7728.37**|
+| Amazon EC2 (ESXi hosts)         | 4 **i4i.metal** instances (on-demand)    | $32,067.44  |
+| Amazon EVS Control Plane        | with 4 EC2 instances BYO VCF subscrfiption | $2,686.40       |
+| Amazon Route 53                 | Hosted zones and queries                 | $183.50     |
+| Amazon VPC                 | 1 Route Server with 2 endpoints, 1 NAT gateway 1TB/mo | $1323.07      |
+|**Total:**                       | assuming on-demand pricing for EC2 instances and Traffic in VPC  | **$36,260.41**|
 
-You can find additional pricing information on the [Amazon EVS Pricing Page](https://aws.amazon.com/evs/pricing/).
+>NOTE: You can find details of this estimate in this AWS Calculator [instance](https://calculator.aws/#/estimate?id=396a36b2e2c0f9e0730265546e508fbdca534cb7) and additional pricing information on the [Amazon EVS Pricing Page](https://aws.amazon.com/evs/pricing/).
+ The EC2 pricing reflects On-Demand pricing. Customers considering deployment of Amazon EVS should work with their account teams to procure either Compute Savings Plan, EC2 Instance Savings Plan, or Reserved Instances for additional cost savings.
 
 ## Prerequisites
 
@@ -328,12 +329,12 @@ For detailed instructions on using EVS service, refer to the [Amazon EVS User Gu
 
 1. Prior to the launch of this CloudFormation [template](https://github.com/aws-solutions-library-samples/guidance-for-automated-setup-for-elastic-vmware-service-on-aws/blob/main/deployment/evs_create_world.yaml), verify that you have correctly entered your VCF-related Broadcom license information
 2. In the event of a deployment failure we recommend the following:
-   1. If the failure occurred during the deployment of the EVS Environment, please open a support case
-   2. If the failure occurred prior to the deployment of the EVS Environment, take note of the errors, delete the Stack and try again 
+  - If a failure occurred during the deployment of the EVS Environment, please open a support case
+  - If a failure occurred prior to the deployment of the EVS Environment, take note of the errors, delete the Stack and try deployment again:   
    <img src="assets/deletestack.png" alt="CloudFormation Stack Delete">
   <i>Figure 10:  Automated Setup for Elastic VMware Service (EVS) - Deleting CloudFormation Stack </i>
   
-For additional information on troubleshooting your Amazon EVS Environment, [please refer to the documentation](https://docs.aws.amazon.com/evs/latest/userguide/troubleshooting.html).
+For additional information on troubleshooting your Amazon EVS Environment, please refer to the [documentation](https://docs.aws.amazon.com/evs/latest/userguide/troubleshooting.html).
 
 ## Cleanup
 Please note that the EVS environment must be manually removed before the CloudFormation stack is deleted.
