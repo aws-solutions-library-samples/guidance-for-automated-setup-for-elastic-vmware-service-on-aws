@@ -7,6 +7,7 @@ Metadata:
       - Label:
           default: VCF and vSAN Keys
         Parameters:
+          - MyVcfVersion
           - MySiteId
           - MySolutionKey
           - MyVsanKey
@@ -48,6 +49,13 @@ Parameters:
     Type: String
     Default: 10.0.
     Description: This is the base CIDR for the underlay VPC
+  MyVcfVersion:
+    Type: String
+    Default: VCF-5.2.2
+    Description: This is the VCF version to deploy
+    AllowedValues:
+      - VCF-5.2.1
+      - VCF-5.2.2
   MySiteId:
     Type: String
     Default: 00000000
@@ -1145,7 +1153,7 @@ Resources:
         NsxManager3: !Ref MyNSX03
         SddcManager: !Ref MySDDCM
         VCenter: !Ref MyVC
-      VcfVersion: VCF-5.2.1
+      VcfVersion: !Ref MyVcfVersion
       VpcId: !Ref UnderlayVPC
       ServiceAccessSecurityGroups:
         SecurityGroups:
