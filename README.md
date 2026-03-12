@@ -319,7 +319,8 @@ For detailed instructions on using EVS service, refer to the [Amazon EVS User Gu
 
 ## Next Steps
 
-1. [Configure additional security settings](https://docs.aws.amazon.com/evs/latest/userguide/security.html)
+1. [Explicitly associate Amazon EVS VLAN subnets to a VPC route table](https://docs.aws.amazon.com/evs/latest/userguide/getting-started.html#getting-started-associate-vlans)
+2. [Configure additional security settings](https://docs.aws.amazon.com/evs/latest/userguide/security.html)
 2. [Set up VMware HCX for migrations](https://docs.aws.amazon.com/evs/latest/userguide/migrate-evs-hcx.html)
 3. [Add additional hosts as needed](https://docs.aws.amazon.com/evs/latest/userguide/evs-env-create-host.html)
 4. [Configure backup and disaster recovery](https://docs.aws.amazon.com/evs/latest/userguide/disaster-recovery-resiliency.html)
