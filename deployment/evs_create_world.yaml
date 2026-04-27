@@ -12,6 +12,10 @@ Metadata:
           - MySolutionKey
           - MyVsanKey
       - Label:
+          default: EC2 instance type for EVS
+        Parameters:
+          - MyHostType
+      - Label:
           default: Availability Zone selection from the current working region
         Parameters:
           - MyAZ
@@ -38,6 +42,13 @@ Metadata:
           - MyNSX02
           - MyNSX03
 Parameters:
+  MyHostType:
+    Type: String
+    Description: This is the EC2 instance type to deploy as the initial cluster in the EVS environment
+    Default: i4i.metal
+    AllowedValues:
+      - i4i.metal
+      - i7i.metal-24xl
   MyAZ:
     Type: AWS::EC2::AvailabilityZone::Name
     Description: Availability Zone to select from the current working region
@@ -1076,16 +1087,16 @@ Resources:
       Hosts:
         - HostName: !Ref MyESXI01
           KeyName: !Ref EVSKeyPair
-          InstanceType: i4i.metal
+          InstanceType: !Ref MyHostType
         - HostName: !Ref MyESXI02
           KeyName: !Ref EVSKeyPair
-          InstanceType: i4i.metal
+          InstanceType: !Ref MyHostType
         - HostName: !Ref MyESXI03
           KeyName: !Ref EVSKeyPair
-          InstanceType: i4i.metal
+          InstanceType: !Ref MyHostType
         - HostName: !Ref MyESXI04
           KeyName: !Ref EVSKeyPair
-          InstanceType: i4i.metal
+          InstanceType: !Ref MyHostType
       InitialVlans:
         VmkManagement:
           Cidr: !Join
