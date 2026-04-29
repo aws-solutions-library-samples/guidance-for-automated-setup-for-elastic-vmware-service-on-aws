@@ -171,7 +171,8 @@ This CloudFormation template is designed to work exclusively with Amazon Route 5
 
 The following service quotas must be available:
 - EVS host count per environment: Minimum 4
-- EC2 Running On-Demand **i4i.metal** instances: 512 vCPUs (4 instances × 128 vCPUs)
+- EC2 Running On-Demand **i4i.metal** instances: 256 CPUs
+- EC2 Running On-Demand **i7i.metal-24xl** instances: 192 CPUs
 
 ### Security
 
